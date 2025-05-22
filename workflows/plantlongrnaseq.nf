@@ -5,6 +5,7 @@
 */
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { MINIMAP2_ALIGN         } from '../modules/nf-core/minimap2/align/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -20,18 +21,72 @@ workflow PLANTLONGRNASEQ {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
+    fasta       // channel: path(genome.fasta)
+    gff         // channel: path(genome.gff)
+    gtf         // channel: path(genome.gtf)
+    
     main:
 
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
+
+
+     //
+    // Uncompress genome fasta file if required
+    //
+    if (fasta.endsWith('.gz')) {
+        ch_fasta    = GUNZIP_FASTA ( [ [:], file(fasta, checkIfExists: true) ] ).gunzip.map { it[1] }
+        ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
+    } else {
+        ch_fasta = Channel.value(file(fasta, checkIfExists: true))
+    }
+
+
+    //
+    // Uncompress GTF annotation file or create from GFF3 if required
+    //
+    if (gtf || gff) {
+        if (gtf) {
+            if (gtf.endsWith('.gz')) {
+                ch_gtf      = GUNZIP_GTF ( [ [:], file(gtf, checkIfExists: true) ] ).gunzip.map { it[1] }
+                ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
+            } else {
+                ch_gtf = Channel.value(file(gtf, checkIfExists: true))
+            }
+        } else if (gff) {
+            if (gff.endsWith('.gz')) {
+                ch_gff      = GUNZIP_GFF ( [ [:], file(gff, checkIfExists: true) ] ).gunzip
+                ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
+            } else {
+                ch_gff = Channel.value(file(gff, checkIfExists: true)).map { [ [:], it ] }
+            }
+            ch_gtf      = GFFREAD ( ch_gff, [] ).gtf.map { it[1] }
+            ch_versions = ch_versions.mix(GFFREAD.out.versions)
+        }
+    }
     //
     // MODULE: Run FastQC
     //
     FASTQC (
         ch_samplesheet
     )
+
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    //
+    // MODULE: Run Minimap2 alignment
+    //
+    MINIMAP2_ALIGN (
+        ch_samplesheet,
+        ch_fasta.map { [ [:], it ] },
+        true,
+        'bai',
+        false,
+        true
+    )
+
+    ch_versions = ch_versions.mix(MINIMAP2_ALIGN.out.versions.first())
+    
 
     //
     // Collate and save software versions

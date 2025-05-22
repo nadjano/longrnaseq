@@ -11,6 +11,14 @@
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    GENOME PARAMETER VALUES
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -28,7 +36,6 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_plan
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
 workflow NFCORE_PLANTLONGRNASEQ {
-
     take:
     samplesheet // channel: samplesheet read in from --input
 
@@ -38,7 +45,10 @@ workflow NFCORE_PLANTLONGRNASEQ {
     // WORKFLOW: Run pipeline
     //
     PLANTLONGRNASEQ (
-        samplesheet
+        samplesheet,
+        params.fasta,
+        params.gff,
+        params.gtf
     )
     emit:
     multiqc_report = PLANTLONGRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
@@ -61,7 +71,10 @@ workflow {
         params.monochrome_logs,
         args,
         params.outdir,
-        params.input
+        params.input,
+        params.fasta,
+        params.gff,
+        params.gtf
     )
 
     //
@@ -83,6 +96,14 @@ workflow {
         NFCORE_PLANTLONGRNASEQ.out.multiqc_report
     )
 }
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
