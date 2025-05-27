@@ -1,2 +1,3 @@
 organism,condition,replicate,sample,fastq_1
 Atlantic,leaf,rep1,SRR14993892,/scratch/nadjafn/Input_data/atlantic_ONT/SRR14993893.fastq.gz
+Desiree,heat,rep1,AD317,/scratch/nadjafn/long_read_RNA_Desiree_raw_data/DataDelivery_2025-05-26_13-00-26_ugc00435/files/pr_186/analysis/pr_186_001/isoseq/flnc-1.bam

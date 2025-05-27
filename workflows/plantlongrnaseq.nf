@@ -5,17 +5,24 @@
 */
 include { FASTQC                                     } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                                    } from '../modules/nf-core/multiqc/main'
-include { MINIMAP2_ALIGN                             } from '../modules/nf-core/minimap2/align/main'
+include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_GENOME     } from '../modules/nf-core/minimap2/align/main'
 include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_TRANSCRIPT } from '../modules/nf-core/minimap2/align/main'
 include { GFFREAD                                    } from '../modules/nf-core/gffread/main'
+include { GUNZIP as GUNZIP_FASTA                     } from '../modules/nf-core/gunzip/main'  
+include { GUNZIP as GUNZIP_GFF                       } from '../modules/nf-core/gunzip/main'  
+include { GUNZIP as GUNZIP_GTF                       } from '../modules/nf-core/gunzip/main'  
 include { GFFREAD as GFFREAD_TRANSCRIPT              } from '../modules/nf-core/gffread/main'
 include { paramsSummaryMap                           } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                       } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                     } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                     } from '../subworkflows/local/utils_nfcore_plantlongrnaseq_pipeline'
 include { BAM_STATS_SAMTOOLS                         } from '../subworkflows/nf-core/bam_stats_samtools/main'   
-include { KRAKEN2_KRAKEN2                            } from '../modules/nf-core/kraken2/kraken2/main'  
+include { CENTRIFUGE_KREPORT                         } from '../modules/nf-core/centrifuge/kreport/main'  
+include { SAMTOOLS_BAM2FQ                            } from '../modules/nf-core/samtools/bam2fq/main'   
+include { CENTRIFUGE_CENTRIFUGE                      } from '../modules/nf-core/centrifuge/centrifuge/main'
 include { PICARD_FILTERSAMREADS                      } from '../modules/nf-core/picard/filtersamreads/main' 
+include { SAMTOOLS_SORT                              } from '../modules/nf-core/samtools/sort/main'   
+include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'  
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,7 +33,7 @@ workflow PLANTLONGRNASEQ {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
-    fasta       // channel: path(genome.fasta)
+    reads       // channel: path(genome.fasta)
     gff         // channel: path(genome.gff)
     gtf         // channel: path(genome.gtf)
     
@@ -36,15 +43,18 @@ workflow PLANTLONGRNASEQ {
     ch_multiqc_files = Channel.empty()
 
 
-     //
+    //
     // Uncompress genome fasta file if required
     //
-    if (fasta.endsWith('.gz')) {
-        ch_fasta    = GUNZIP_FASTA ( [ [:], file(fasta, checkIfExists: true) ] ).gunzip.map { it[1] }
+    if (reads.endsWith('f*q.gz')) {
+        ch_fasta    = GUNZIP_FASTA ( [ [:], file(reads, checkIfExists: true) ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
-    } else {
-        ch_fasta = Channel.value(file(fasta, checkIfExists: true))
-    }
+    } else if (reads.endsWith('.bam')) {
+        ch_fasta    = PBTK_BAM2FASTQ ( [ [:], file(reads, checkIfExists: true) ] ).fasta.map { it[1] }
+        ch_versions = ch_versions.mix(PBTK_BAM2FASTQ.out.versions)
+    } else if (reads.endsWith('.fasta') || reads.endsWith('.fa')) {
+        ch_fasta    = Channel.value(file(reads, checkIfExists: true))
+    } 
 
 
     //
@@ -85,13 +95,11 @@ workflow PLANTLONGRNASEQ {
     GFFREAD_TRANSCRIPT(ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }, 
                        ch_fasta)
 
-    GFFREAD_TRANSCRIPT.out.gffread_fasta.view()
-
     ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
     //
     // MODULE: Run Minimap2 alignment on gennome
     //
-    MINIMAP2_ALIGN (
+    MINIMAP2_ALIGN_GENOME (
         ch_samplesheet,
         ch_fasta.map { [ [:], it ] },
         true,
@@ -99,10 +107,8 @@ workflow PLANTLONGRNASEQ {
         false,
         true
     )
-    MINIMAP2_ALIGN.out.bam.view()
-    MINIMAP2_ALIGN.out.index.view()
 
-    ch_versions = ch_versions.mix(MINIMAP2_ALIGN.out.versions.first())
+    ch_versions = ch_versions.mix(MINIMAP2_ALIGN_GENOME.out.versions.first())
     
     // 
     // MODULE: Run Minimap2 alignment on transcripts
@@ -122,7 +128,7 @@ workflow PLANTLONGRNASEQ {
     // SUBWORKFLOW: Run SAMtools stats, flagstat and idxstats
     //
 
-    BAM_STATS_SAMTOOLS ( MINIMAP2_ALIGN.out.bam.join(MINIMAP2_ALIGN.out.index), 
+    BAM_STATS_SAMTOOLS ( MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index), 
                          ch_fasta.map { [ [:], it ] }
                         )
 
@@ -130,23 +136,47 @@ workflow PLANTLONGRNASEQ {
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
+    // MODULE: Run SAMtools sort for picard filtersamreads
+    //
+    SAMTOOLS_SORT (
+        MINIMAP2_ALIGN_GENOME.out.bam, 
+        ch_fasta.map { [ [:], it ]}
+    )
+
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
+    //
     // MODULE: Run filtersamreads to get unaligned reads
     //
     PICARD_FILTERSAMREADS (
-        MINIMAP2_ALIGN.out.bam.join(MINIMAP2_ALIGN.out.index),
+        SAMTOOLS_SORT.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
         "excludeAligned"
     )
 
+    ch_versions = ch_versions.mix(PICARD_FILTERSAMREADS.out.versions.first())
+    // MODULE: Run SAMtools bam2fq to convert unaligned reads to fastq
+    SAMTOOLS_BAM2FQ (
+        PICARD_FILTERSAMREADS.out.bam,
+        false
+    )
 
     // 
-    // MODULE: Run Kraken2
+    // MODULE: Run Centrifuge
     //
-//     KRAKEN2_KRAKEN (
-//             ch_unaligned_sequences,
-//             params.kraken_db,
-//             params.save_kraken_assignments,
-//             params.save_kraken_unassigned        
-// )
+    CENTRIFUGE_CENTRIFUGE (
+        SAMTOOLS_BAM2FQ.out.reads,
+        params.centrifuge_db,
+        false,
+        false
+    )
+
+    ch_versions = ch_versions.mix(CENTRIFUGE_CENTRIFUGE.out.versions.first())
+
+    CENTRIFUGE_KREPORT (
+        CENTRIFUGE_CENTRIFUGE.out.report,
+        params.centrifuge_db
+    )
+
+    ch_multiqc_files = ch_multiqc_files.mix(CENTRIFUGE_KREPORT.out.kreport.collect{it[1]})
 
     //
     // Collate and save software versions
