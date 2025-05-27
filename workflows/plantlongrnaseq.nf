@@ -3,20 +3,25 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { MINIMAP2_ALIGN         } from '../modules/nf-core/minimap2/align/main'
-include { paramsSummaryMap       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_plantlongrnaseq_pipeline'
+include { FASTQC                                     } from '../modules/nf-core/fastqc/main'
+include { MULTIQC                                    } from '../modules/nf-core/multiqc/main'
+include { MINIMAP2_ALIGN                             } from '../modules/nf-core/minimap2/align/main'
+include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_TRANSCRIPT } from '../modules/nf-core/minimap2/align/main'
+include { GFFREAD                                    } from '../modules/nf-core/gffread/main'
+include { GFFREAD as GFFREAD_TRANSCRIPT              } from '../modules/nf-core/gffread/main'
+include { paramsSummaryMap                           } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc                       } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML                     } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText                     } from '../subworkflows/local/utils_nfcore_plantlongrnaseq_pipeline'
+include { BAM_STATS_SAMTOOLS                         } from '../subworkflows/nf-core/bam_stats_samtools/main'   
+include { KRAKEN2_KRAKEN2                            } from '../modules/nf-core/kraken2/kraken2/main'  
+include { PICARD_FILTERSAMREADS                      } from '../modules/nf-core/picard/filtersamreads/main' 
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
 workflow PLANTLONGRNASEQ {
 
     take:
@@ -73,8 +78,18 @@ workflow PLANTLONGRNASEQ {
 
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    // 
+    // MODULE: Run GFFREAD to extract transcript sequences
     //
-    // MODULE: Run Minimap2 alignment
+    // extract the spliced transcripts
+    GFFREAD_TRANSCRIPT(ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }, 
+                       ch_fasta)
+
+    GFFREAD_TRANSCRIPT.out.gffread_fasta.view()
+
+    ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
+    //
+    // MODULE: Run Minimap2 alignment on gennome
     //
     MINIMAP2_ALIGN (
         ch_samplesheet,
@@ -84,9 +99,54 @@ workflow PLANTLONGRNASEQ {
         false,
         true
     )
+    MINIMAP2_ALIGN.out.bam.view()
+    MINIMAP2_ALIGN.out.index.view()
 
     ch_versions = ch_versions.mix(MINIMAP2_ALIGN.out.versions.first())
     
+    // 
+    // MODULE: Run Minimap2 alignment on transcripts
+    //
+    MINIMAP2_ALIGN_TRANSCRIPT (
+        ch_samplesheet,
+        GFFREAD_TRANSCRIPT.out.gffread_fasta,
+        true,
+        'bai',
+        false,
+        true
+    )
+   
+    ch_versions = ch_versions.mix(MINIMAP2_ALIGN_TRANSCRIPT.out.versions.first())
+
+    // 
+    // SUBWORKFLOW: Run SAMtools stats, flagstat and idxstats
+    //
+
+    BAM_STATS_SAMTOOLS ( MINIMAP2_ALIGN.out.bam.join(MINIMAP2_ALIGN.out.index), 
+                         ch_fasta.map { [ [:], it ] }
+                        )
+
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]})
+    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
+
+    //
+    // MODULE: Run filtersamreads to get unaligned reads
+    //
+    PICARD_FILTERSAMREADS (
+        MINIMAP2_ALIGN.out.bam.join(MINIMAP2_ALIGN.out.index),
+        "excludeAligned"
+    )
+
+
+    // 
+    // MODULE: Run Kraken2
+    //
+//     KRAKEN2_KRAKEN (
+//             ch_unaligned_sequences,
+//             params.kraken_db,
+//             params.save_kraken_assignments,
+//             params.save_kraken_unassigned        
+// )
 
     //
     // Collate and save software versions
