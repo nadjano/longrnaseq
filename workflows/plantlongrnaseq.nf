@@ -133,6 +133,8 @@ workflow PLANTLONGRNASEQ {
                         )
 
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]})
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]})
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect{it[1]})
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
@@ -144,6 +146,7 @@ workflow PLANTLONGRNASEQ {
     )
 
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
+    
     //
     // MODULE: Run filtersamreads to get unaligned reads
     //
