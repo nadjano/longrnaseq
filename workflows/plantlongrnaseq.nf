@@ -8,22 +8,23 @@ include { MULTIQC                                    } from '../modules/nf-core/
 include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_GENOME     } from '../modules/nf-core/minimap2/align/main'
 include { MINIMAP2_ALIGN as MINIMAP2_ALIGN_TRANSCRIPT } from '../modules/nf-core/minimap2/align/main'
 include { GFFREAD                                    } from '../modules/nf-core/gffread/main'
-include { GUNZIP as GUNZIP_FASTA                     } from '../modules/nf-core/gunzip/main'  
-include { GUNZIP as GUNZIP_GFF                       } from '../modules/nf-core/gunzip/main'  
-include { GUNZIP as GUNZIP_GTF                       } from '../modules/nf-core/gunzip/main'  
+include { GUNZIP as GUNZIP_FASTA                     } from '../modules/nf-core/gunzip/main'
+include { GUNZIP as GUNZIP_GFF                       } from '../modules/nf-core/gunzip/main'
+include { GUNZIP as GUNZIP_GTF                       } from '../modules/nf-core/gunzip/main'
 include { GFFREAD as GFFREAD_TRANSCRIPT              } from '../modules/nf-core/gffread/main'
 include { paramsSummaryMap                           } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                       } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                     } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                     } from '../subworkflows/local/utils_nfcore_plantlongrnaseq_pipeline'
-include { BAM_STATS_SAMTOOLS                         } from '../subworkflows/nf-core/bam_stats_samtools/main'   
-include { CENTRIFUGE_KREPORT                         } from '../modules/nf-core/centrifuge/kreport/main'  
-include { SAMTOOLS_BAM2FQ                            } from '../modules/nf-core/samtools/bam2fq/main'   
+include { BAM_STATS_SAMTOOLS                         } from '../subworkflows/nf-core/bam_stats_samtools/main'
+include { CENTRIFUGE_KREPORT                         } from '../modules/nf-core/centrifuge/kreport/main'
+include { SAMTOOLS_BAM2FQ                            } from '../modules/nf-core/samtools/bam2fq/main'
 include { CENTRIFUGE_CENTRIFUGE                      } from '../modules/nf-core/centrifuge/centrifuge/main'
-include { PICARD_FILTERSAMREADS                      } from '../modules/nf-core/picard/filtersamreads/main' 
-include { SAMTOOLS_SORT                              } from '../modules/nf-core/samtools/sort/main'   
-include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'  
-
+include { PICARD_FILTERSAMREADS                      } from '../modules/nf-core/picard/filtersamreads/main'
+include { SAMTOOLS_SORT as SAMTOOLS_SORT_GENOME                             } from '../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_SORT as SAMTOOLS_SORT_TRANSRIPTOME                           } from '../modules/nf-core/samtools/sort/main'
+include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'
+include { OARFISH                                    } from '../../modules/modules/nf-core/oarfish/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -36,7 +37,7 @@ workflow PLANTLONGRNASEQ {
     reads       // channel: path(genome.fasta)
     gff         // channel: path(genome.gff)
     gtf         // channel: path(genome.gtf)
-    
+
     main:
 
     ch_versions = Channel.empty()
@@ -54,7 +55,7 @@ workflow PLANTLONGRNASEQ {
         ch_versions = ch_versions.mix(PBTK_BAM2FASTQ.out.versions)
     } else if (reads.endsWith('.fasta') || reads.endsWith('.fa')) {
         ch_fasta    = Channel.value(file(reads, checkIfExists: true))
-    } 
+    }
 
 
     //
@@ -88,11 +89,11 @@ workflow PLANTLONGRNASEQ {
 
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
-    // 
+    //
     // MODULE: Run GFFREAD to extract transcript sequences
     //
     // extract the spliced transcripts
-    GFFREAD_TRANSCRIPT(ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }, 
+    GFFREAD_TRANSCRIPT(ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
                        ch_fasta)
 
     ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
@@ -109,8 +110,8 @@ workflow PLANTLONGRNASEQ {
     )
 
     ch_versions = ch_versions.mix(MINIMAP2_ALIGN_GENOME.out.versions.first())
-    
-    // 
+
+    //
     // MODULE: Run Minimap2 alignment on transcripts
     //
     MINIMAP2_ALIGN_TRANSCRIPT (
@@ -121,14 +122,28 @@ workflow PLANTLONGRNASEQ {
         false,
         true
     )
-   
-    ch_versions = ch_versions.mix(MINIMAP2_ALIGN_TRANSCRIPT.out.versions.first())
 
-    // 
+    ch_versions = ch_versions.mix(MINIMAP2_ALIGN_TRANSCRIPT.out.versions.first())
+    //
+    //MODULE: Run SAMtools sort for transcriptome
+    //
+    SAMTOOLS_SORT_TRANSRIPTOME (
+        MINIMAP2_ALIGN_TRANSCRIPT.out.bam,
+        ch_fasta.map { [ [:], it ]}
+    )
+
+    //
+    // MODULE: Run Oarfish to quantify transcripts aligned
+    //
+    OARFISH (
+        SAMTOOLS_SORT_TRANSRIPTOME.out.bam)
+
+
+    //
     // SUBWORKFLOW: Run SAMtools stats, flagstat and idxstats
     //
 
-    BAM_STATS_SAMTOOLS ( MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index), 
+    BAM_STATS_SAMTOOLS ( MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
                          ch_fasta.map { [ [:], it ] }
                         )
 
@@ -140,18 +155,18 @@ workflow PLANTLONGRNASEQ {
     //
     // MODULE: Run SAMtools sort for picard filtersamreads
     //
-    SAMTOOLS_SORT (
-        MINIMAP2_ALIGN_GENOME.out.bam, 
+    SAMTOOLS_SORT_GENOME (
+        MINIMAP2_ALIGN_GENOME.out.bam,
         ch_fasta.map { [ [:], it ]}
     )
 
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
-    
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT_GENOME.out.versions.first())
+
     //
     // MODULE: Run filtersamreads to get unaligned reads
     //
     PICARD_FILTERSAMREADS (
-        SAMTOOLS_SORT.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
+        SAMTOOLS_SORT_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
         "excludeAligned"
     )
 
@@ -162,7 +177,7 @@ workflow PLANTLONGRNASEQ {
         false
     )
 
-    // 
+    //
     // MODULE: Run Centrifuge
     //
     CENTRIFUGE_CENTRIFUGE (
