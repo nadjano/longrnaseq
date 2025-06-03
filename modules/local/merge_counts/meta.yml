@@ -1,0 +1,51 @@
+name: MERGE_COUNTS
+description: Merge count files from multiple replicates into a single matrix
+keywords:
+  - counts
+  - merge
+  - transcripts
+  - replicates
+  - expression
+tools:
+  - python:
+      description: Python programming language
+      homepage: https://www.python.org/
+      documentation: https://docs.python.org/
+      tool_dev_url: https://github.com/python/cpython
+      licence: ["Python Software Foundation License"]
+  - pandas:
+      description: Powerful data structures for data analysis, time series, and statistics
+      homepage: https://pandas.pydata.org/
+      documentation: https://pandas.pydata.org/docs/
+      tool_dev_url: https://github.com/pandas-dev/pandas
+      licence: ["BSD-3-Clause"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:['sample1', 'sample2', 'sample3'] ]
+      pattern: "[ id: [sample_ids] ]"
+  - count_files:
+      type: file
+      description: Count files to merge (transcript_id, length, counts format)
+      pattern: "*.{txt,tsv,csv}"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:['sample1', 'sample2', 'sample3'] ]
+  - merged_counts:
+      type: file
+      description: Merged count matrix with transcript IDs, lengths, and sample counts
+      pattern: "merged_counts.tsv"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@seqera-ai"

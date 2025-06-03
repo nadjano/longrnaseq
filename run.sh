@@ -7,6 +7,6 @@ nextflow run main.nf -resume -profile singularity \
                     --input assets/samplesheet_desiree.csv \
                     --outdir output_desiree \
                     --fasta /scratch/nadjafn/reference/Desiree_v1/De_v1_no_scaffold_chloroplast_mt.fa \
-                    --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.functional_annotations_nodigits.longest_isoforms_cds150.gtf \
+                    --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.functional_annotations_nodigits.longest_isoforms_cds2exon150.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     -bg

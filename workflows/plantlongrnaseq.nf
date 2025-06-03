@@ -21,15 +21,24 @@ include { CENTRIFUGE_KREPORT                         } from '../modules/nf-core/
 include { SAMTOOLS_BAM2FQ                            } from '../modules/nf-core/samtools/bam2fq/main'
 include { CENTRIFUGE_CENTRIFUGE                      } from '../modules/nf-core/centrifuge/centrifuge/main'
 include { PICARD_FILTERSAMREADS                      } from '../modules/nf-core/picard/filtersamreads/main'
-include { SAMTOOLS_SORT as SAMTOOLS_SORT_GENOME                             } from '../modules/nf-core/samtools/sort/main'
-include { SAMTOOLS_SORT as SAMTOOLS_SORT_TRANSRIPTOME                           } from '../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_SORT as SAMTOOLS_SORT_GENOME      } from '../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_SORT as SAMTOOLS_SORT_TRANSRIPTOME } from '../modules/nf-core/samtools/sort/main'
 include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'
 include { OARFISH                                    } from '../../modules/modules/nf-core/oarfish/main'
+include { DESEQ2_QC                                   } from '../modules/local/deseq2_qc/main'
+include { MERGE_COUNTS                                } from '../modules/local/merge_counts'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+
+// Header files for MultiQC
+ch_pca_header_multiqc           = file("$projectDir/workflows/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
+ch_clustering_header_multiqc    = file("$projectDir/workflows/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
+
 workflow PLANTLONGRNASEQ {
 
     take:
@@ -132,12 +141,48 @@ workflow PLANTLONGRNASEQ {
         ch_fasta.map { [ [:], it ]}
     )
 
+
     //
     // MODULE: Run Oarfish to quantify transcripts aligned
     //
     OARFISH (
         SAMTOOLS_SORT_TRANSRIPTOME.out.bam)
 
+    ch_versions = ch_versions.mix(OARFISH.out.versions.first())
+
+
+
+    //
+    // MODULE: Merge counts from Oarfish
+    //
+
+    combined_ch = OARFISH.out.results
+    .toSortedList { a, b ->
+        // Sort by sample ID
+        a[0].id <=> b[0].id
+    }
+    .map { tuples ->
+        def metas = tuples.collect { it[0] }  // Extract all meta maps
+        def files = tuples.collect { it[1] }  // Extract all quant files
+        [metas, files]
+    }
+
+
+    MERGE_COUNTS(combined_ch)
+
+
+    //
+    // MODULE: Run DESeq2 QC
+    //
+    DESEQ2_QC (
+        MERGE_COUNTS.out.merged_counts,
+        ch_pca_header_multiqc,
+        ch_clustering_header_multiqc
+    )
+
+    ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.pca_multiqc.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.dists_multiqc.collect())
+    ch_versions = ch_versions.mix(DESEQ2_QC.out.versions.first())
 
     //
     // SUBWORKFLOW: Run SAMtools stats, flagstat and idxstats
