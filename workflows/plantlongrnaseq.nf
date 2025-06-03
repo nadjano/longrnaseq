@@ -27,6 +27,7 @@ include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/
 include { OARFISH                                    } from '../../modules/modules/nf-core/oarfish/main'
 include { DESEQ2_QC                                   } from '../modules/local/deseq2_qc/main'
 include { MERGE_COUNTS                                } from '../modules/local/merge_counts'
+include { RUN_SQANTI_READS                        } from '../subworkflows/local/run_sqanti_reads'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,7 +61,7 @@ workflow PLANTLONGRNASEQ {
         ch_fasta    = GUNZIP_FASTA ( [ [:], file(reads, checkIfExists: true) ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else if (reads.endsWith('.bam')) {
-        ch_fasta    = PBTK_BAM2FASTQ ( [ [:], file(reads, checkIfExists: true) ] ).fasta.map { it[1] }
+        ch_fasta = PBTK_BAM2FASTQ ( [ [:], file(reads, checkIfExists: true) ] ).fasta.map { it[1] }
         ch_versions = ch_versions.mix(PBTK_BAM2FASTQ.out.versions)
     } else if (reads.endsWith('.fasta') || reads.endsWith('.fa')) {
         ch_fasta    = Channel.value(file(reads, checkIfExists: true))
@@ -174,15 +175,20 @@ workflow PLANTLONGRNASEQ {
     //
     // MODULE: Run DESeq2 QC
     //
-    DESEQ2_QC (
-        MERGE_COUNTS.out.merged_counts,
-        ch_pca_header_multiqc,
-        ch_clustering_header_multiqc
-    )
+    if (!params.skip_deseq2_qc){
+        DESEQ2_QC (
+            MERGE_COUNTS.out.merged_counts,
+            ch_pca_header_multiqc,
+            ch_clustering_header_multiqc
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.pca_multiqc.collect())
+        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.dists_multiqc.collect())
+        ch_versions = ch_versions.mix(DESEQ2_QC.out.versions.first())
 
-    ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.pca_multiqc.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.dists_multiqc.collect())
-    ch_versions = ch_versions.mix(DESEQ2_QC.out.versions.first())
+    }
+
+
+
 
     //
     // SUBWORKFLOW: Run SAMtools stats, flagstat and idxstats
@@ -216,6 +222,7 @@ workflow PLANTLONGRNASEQ {
     )
 
     ch_versions = ch_versions.mix(PICARD_FILTERSAMREADS.out.versions.first())
+
     // MODULE: Run SAMtools bam2fq to convert unaligned reads to fastq
     SAMTOOLS_BAM2FQ (
         PICARD_FILTERSAMREADS.out.bam,
@@ -240,6 +247,15 @@ workflow PLANTLONGRNASEQ {
     )
 
     ch_multiqc_files = ch_multiqc_files.mix(CENTRIFUGE_KREPORT.out.kreport.collect{it[1]})
+
+    //
+    // SUBWORKFLOW: Run SQANTI on reads
+    //
+    RUN_SQANTI_READS(
+                    MINIMAP2_ALIGN_GENOME.out.bam,
+                    ch_fasta.map { [ [:], it ] },
+                    ch_gtf
+                    )
 
     //
     // Collate and save software versions

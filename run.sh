@@ -1,4 +1,4 @@
- nextflow  run main.nf -resume -profile singularity --input assets/samplesheet_atlantic.csv --outdir output --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.fa  --gtf /scratch/nadjafn/reference/Atlantic/ATL_v3.hc_gene_models.repr.gtf  --centrifuge_db /biodbs/centrifuge/dbs_v2018/
+ nextflow  run main.nf -resume -profile singularity --input assets/samplesheet_atlantic.csv --outdir output --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.fa  --gtf /scratch/nadjafn/reference/Atlantic/ATL_v3.hc_gene_models.repr.gtf  --centrifuge_db /biodbs/centrifuge/dbs_v2018/ --skip_deseq2_qc
 
 
 

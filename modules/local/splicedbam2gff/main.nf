@@ -60,6 +60,7 @@ process SPLICEDBAM2GFF {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
     spliced_bam2gff \\
+        -t 100000 \\
         -M $bam \\
         > ${prefix}.gff
 
