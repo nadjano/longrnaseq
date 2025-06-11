@@ -252,7 +252,7 @@ workflow PLANTLONGRNASEQ {
     // SUBWORKFLOW: Run SQANTI on reads
     //
     RUN_SQANTI_READS(
-                    MINIMAP2_ALIGN_GENOME.out.bam,
+                    MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
                     ch_fasta.map { [ [:], it ] },
                     ch_gtf
                     )

@@ -42,17 +42,16 @@ process DESEQ2_QC {
         --cores $task.cpus \\
         --outprefix $prefix $args
 
-    ls -a
-    #if [ -f "R_sessionInfo.log" ]; then
-    sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$pca_header_multiqc >tmp.txt
-    sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
-    cat tmp.txt *.pca.vals.txt > ${label_lower}pca.vals_mqc.tsv
-    rm tmp.txt
-    sed "s/deseq2_clustering/${label_lower}_deseq2_clustering/g" <$clustering_header_multiqc >tmp.txt
-    sed -i -e "s/DESeq2 sample/${label_upper} DESeq2 sample/g" tmp.txt
-    cat tmp.txt *.sample.dists.txt > ${label_lower}sample.dists_mqc.tsv
-
-    ls -a
+    if [ -f "R_sessionInfo.log" ]; then
+        sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$pca_header_multiqc >tmp.txt
+        sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
+        cat tmp.txt *.pca.vals.txt > ${label_lower}pca.vals_mqc.tsv
+        rm tmp.txt
+        sed "s/deseq2_clustering/${label_lower}_deseq2_clustering/g" <$clustering_header_multiqc >tmp.txt
+        sed -i -e "s/DESeq2 sample/${label_upper} DESeq2 sample/g" tmp.txt
+        cat tmp.txt *.sample.dists.txt > ${label_lower}sample.dists_mqc.tsv
+    fi
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
