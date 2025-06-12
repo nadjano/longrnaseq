@@ -66,8 +66,6 @@ workflow PLANTLONGRNASEQ {
     } else if (reads.endsWith('.fasta') || reads.endsWith('.fa')) {
         ch_fasta    = Channel.value(file(reads, checkIfExists: true))
     }
-
-
     //
     // Uncompress GTF annotation file or create from GFF3 if required
     //

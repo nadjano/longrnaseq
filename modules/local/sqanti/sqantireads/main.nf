@@ -1,5 +1,5 @@
 process SQANTIREADS {
-    
+
     tag "$meta.id"
     label 'process_medium'
 
@@ -43,7 +43,8 @@ process SQANTIREADS {
 
     python ${params.sqanti_dir}/sqanti3_reads.py \\
         --design design.csv \\
-        --annotation $annotation
+        --annotation $annotation \\
+        $args
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

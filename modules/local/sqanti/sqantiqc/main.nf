@@ -1,7 +1,6 @@
 
 process SQANTIQC {
     tag "$meta.id"
-
     cache 'lenient'
 
     // container 'docker://anaconesalab/sqanti3'
@@ -15,8 +14,8 @@ process SQANTIQC {
     path(annotation)
 
     output:
-    tuple val(meta), path("${meta}/*.html"), emit: html
-    tuple val(meta), path("${meta}", type: 'dir'), emit: sqanti_qc
+    tuple val(meta), path("${meta.id}/*.html"), emit: html
+    tuple val(meta), path("${meta.id}", type: 'dir'), emit: sqanti_qc
     path "versions.yml"           , emit: versions
 
     when:
@@ -30,7 +29,7 @@ process SQANTIQC {
         --isoforms $gff \\
         --refGTF $annotation \\
         --refFasta $genome \\
-        --skipORF --min_ref_len 0 --chunks 10 \\
+        $args \\
         -t $task.cpus -d ${prefix} -o ${prefix}
 
     cat <<-END_VERSIONS > versions.yml

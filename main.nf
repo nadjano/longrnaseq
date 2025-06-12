@@ -9,12 +9,13 @@
 ----------------------------------------------------------------------------------------
 */
 
+nextflow.enable.dsl = 2
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     GENOME PARAMETER VALUES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
 
 
 /*
@@ -35,6 +36,8 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_plan
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
+
+
 workflow NFCORE_PLANTLONGRNASEQ {
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -76,6 +79,8 @@ workflow {
         params.gff,
         params.gtf
     )
+
+
 
     //
     // WORKFLOW: Run main workflow
