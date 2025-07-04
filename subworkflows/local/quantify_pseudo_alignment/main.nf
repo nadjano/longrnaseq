@@ -69,6 +69,8 @@ workflow QUANTIFY_PSEUDO_ALIGNMENT {
                         .join(TXIMETA_TXIMPORT.out.tpm_transcript)
                         .map{tuple(it[0], it.tail())}
 
+
+
     // SE_TRANSCRIPT_UNIFIED (
     //     ch_transcript_unified,
     //     CUSTOM_TX2GENE.out.tx2gene,

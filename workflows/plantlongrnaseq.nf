@@ -157,7 +157,7 @@ workflow PLANTLONGRNASEQ {
 
 
 
-    ch_versions = ch_versions.mix(OARFISH.out.versions.first())
+    ch_versions = ch_versions.mix(QUANTIFY_PSEUDO_ALIGNMENT.out.versions.first())
 
 
     //
