@@ -17,7 +17,7 @@
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^\\S+\\.(f(ast)?q\\.gz|bam)$",
+                "pattern": "^\\S+\\.(f(ast)?q\\.gz|bam|fastq)$",
                 "errorMessage": "FastQ/BAM file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' '.fastq.gz' or '.bam'"
             },
             "fastq_2": {

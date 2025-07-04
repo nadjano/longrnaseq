@@ -15,6 +15,11 @@
                         "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
                         "installed_by": ["modules"]
                     },
+                    "custom/tx2gene": {
+                        "branch": "master",
+                        "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
+                        "installed_by": ["quantify_pseudo_alignment"]
+                    },
                     "deseq2/differential": {
                         "branch": "master",
                         "git_sha": "25c228dd132d91596e87b636b0e03fd48d4c951a",
@@ -34,6 +39,11 @@
                         "branch": "master",
                         "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
                         "installed_by": ["modules"]
+                    },
+                    "kallisto/quant": {
+                        "branch": "master",
+                        "git_sha": "8864afe586537bf562eac7b83349c26207f3cb4d",
+                        "installed_by": ["quantify_pseudo_alignment"]
                     },
                     "kraken2/kraken2": {
                         "branch": "master",
@@ -59,6 +69,11 @@
                         "branch": "master",
                         "git_sha": "81880787133db07d9b4c1febd152c090eb8325dc",
                         "installed_by": ["modules"]
+                    },
+                    "salmon/quant": {
+                        "branch": "master",
+                        "git_sha": "db5a84497b80c4932b4498ec231f19403d19bcff",
+                        "installed_by": ["quantify_pseudo_alignment"]
                     },
                     "samtools/bam2fq": {
                         "branch": "master",
@@ -89,6 +104,16 @@
                         "branch": "master",
                         "git_sha": "d090922b1a4b80ba283186459ababf8e308abcbb",
                         "installed_by": ["modules"]
+                    },
+                    "summarizedexperiment/summarizedexperiment": {
+                        "branch": "master",
+                        "git_sha": "1f008221e451e7a4738226c49e69aaa2eb731369",
+                        "installed_by": ["quantify_pseudo_alignment"]
+                    },
+                    "tximeta/tximport": {
+                        "branch": "master",
+                        "git_sha": "1f008221e451e7a4738226c49e69aaa2eb731369",
+                        "installed_by": ["quantify_pseudo_alignment"]
                     }
                 }
             },
@@ -97,6 +122,11 @@
                     "bam_stats_samtools": {
                         "branch": "master",
                         "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
+                        "installed_by": ["subworkflows"]
+                    },
+                    "quantify_pseudo_alignment": {
+                        "branch": "master",
+                        "git_sha": "1f008221e451e7a4738226c49e69aaa2eb731369",
                         "installed_by": ["subworkflows"]
                     },
                     "utils_nextflow_pipeline": {

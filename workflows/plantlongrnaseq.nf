@@ -24,10 +24,10 @@ include { PICARD_FILTERSAMREADS                      } from '../modules/nf-core/
 include { SAMTOOLS_SORT as SAMTOOLS_SORT_GENOME      } from '../modules/nf-core/samtools/sort/main'
 include { SAMTOOLS_SORT as SAMTOOLS_SORT_TRANSRIPTOME } from '../modules/nf-core/samtools/sort/main'
 include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'
-include { OARFISH                                    } from '../../modules/modules/nf-core/oarfish/main'
 include { DESEQ2_QC                                   } from '../modules/local/deseq2_qc/main'
 include { MERGE_COUNTS                                } from '../modules/local/merge_counts'
-include { RUN_SQANTI_READS                        } from '../subworkflows/local/run_sqanti_reads'
+include { RUN_SQANTI_READS                            } from '../subworkflows/local/run_sqanti_reads'
+include { QUANTIFY_PSEUDO_ALIGNMENT                   } from '../subworkflows/local/quantify_pseudo_alignment/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,6 +95,8 @@ workflow PLANTLONGRNASEQ {
         ch_samplesheet
     )
 
+
+
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
     //
@@ -141,33 +143,21 @@ workflow PLANTLONGRNASEQ {
     )
 
 
+
     //
     // MODULE: Run Oarfish to quantify transcripts aligned
     //
-    OARFISH (
-        SAMTOOLS_SORT_TRANSRIPTOME.out.bam)
+    QUANTIFY_PSEUDO_ALIGNMENT (
+                ch_samplesheet.map { [ [:], it ] },
+                SAMTOOLS_SORT_TRANSRIPTOME.out.bam,
+                'oarfish',
+                ch_gtf,
+                params.gtf_group_features,        //     val: GTF gene ID attribute
+                params.gtf_extra_attributes)
+
+
 
     ch_versions = ch_versions.mix(OARFISH.out.versions.first())
-
-
-
-    //
-    // MODULE: Merge counts from Oarfish
-    //
-
-    combined_ch = OARFISH.out.results
-    .toSortedList { a, b ->
-        // Sort by sample ID
-        a[0].id <=> b[0].id
-    }
-    .map { tuples ->
-        def metas = tuples.collect { it[0] }  // Extract all meta maps
-        def files = tuples.collect { it[1] }  // Extract all quant files
-        [metas, files]
-    }
-
-
-    MERGE_COUNTS(combined_ch)
 
 
     //
@@ -175,7 +165,7 @@ workflow PLANTLONGRNASEQ {
     //
     if (!params.skip_deseq2_qc){
         DESEQ2_QC (
-            MERGE_COUNTS.out.merged_counts,
+            QUANTIFY_PSEUDO_ALIGNMENT.out.counts_gene.map { it[1] },
             ch_pca_header_multiqc,
             ch_clustering_header_multiqc
         )
@@ -184,8 +174,6 @@ workflow PLANTLONGRNASEQ {
         ch_versions = ch_versions.mix(DESEQ2_QC.out.versions.first())
 
     }
-
-
 
 
     //
