@@ -19,11 +19,19 @@ The pipeline includes the following main steps:
 5. Transcript classification ([`SQANTI`](https://github.com/ConesaLab/SQANTI3))
 6. Transcript quantification ([`Oarfish`](https://github.com/COMBINE-lab/oarfish)) and gene-level summarization
 
+## Dependencies
+
+An environment with nextflow (>=24.04.2) and Singularity installed.
+
+**Note:** If you want to run SQANTI-reads quality control, you will also need to:
+- Install all [SQANTI3 dependencies](https://github.com/ConesaLab/SQANTI3/blob/master/SQANTI3.conda_env.yml)
+- Clone the [SQANTI3 git repository](https://github.com/ConesaLab/SQANTI3) and provide the directory as input
+
+For running Centrifuge, you also need to create a [Centrifuge database](https://ccb.jhu.edu/software/centrifuge/manual.shtml).
+
+
+
 ## Usage
-
-> [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
-
 First, prepare a samplesheet with your input data that looks as follows:
 
 `samplesheet.csv`:
@@ -34,7 +42,7 @@ SAMPLE1,sample1_R1.fastq.gz
 SAMPLE2,sample2_R1.fastq.gz
 ```
 
-Each row represents a sample with paired-end fastq files.
+Each row represents a sample with one fastq file.
 
 ## Running the Pipeline
 
@@ -46,6 +54,7 @@ The pipeline requires the following mandatory parameters:
 - `--fasta`: Path to reference genome FASTA file
 - `--gtf`: Path to GTF annotation file
 - `--centrifuge_db`: Path to Centrifuge database
+- `--sqanti_dir`: Path to SQANTI3 directory
 
 ### Profile Support
 
@@ -65,18 +74,11 @@ nextflow run main.nf -resume -profile singularity \
 
 ### Optional Parameters
 
-- `--sqanti_dir`: Path to SQANTI3 installation directory (required for SQANTI analysis)
 - `--sqanti_test`: Enable test mode for SQANTI_reads(processes only first 2 samples)
 - `-bg`: Run pipeline in background
 - `-resume`: Resume previous run from where it left off
 
 ### Important Notes
-
-- Only the `singularity` profile is currently supported
-- All file paths should be absolute paths
-- The `sqanti_test` parameter is useful for testing with reduced sample sizes
-- The pipeline will create a `work` directory in your current location for temporary files
-
 
 
 > [!WARNING]
@@ -86,9 +88,7 @@ For more details and further functionality, please refer to the [usage documenta
 
 ## Pipeline output
 
-To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/plantlongrnaseq/results) tab on the nf-core website pipeline page.
-For more details about the output files and reports, please refer to the
-[output documentation](https://nf-co.re/plantlongrnaseq/output).
+
 
 ## Credits
 

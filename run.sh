@@ -33,5 +33,5 @@ nextflow run main.nf -resume -profile singularity \
                     --fasta /scratch/nadjafn/reference/Desiree_v1/De_v1_no_scaffold_chloroplast_mt.fa \
                     --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
-                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
-                    --sqanti_test -bg
+                    --sqanti_dir /scratch/nadjafn/SQANTI3-5.1.2/SQANTI3 \
+                    -bg
