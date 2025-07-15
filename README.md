@@ -8,7 +8,7 @@
 
 ## Introduction
 
-**nf-core/longrnaseq** is a bioinformatics pipeline that processes plant long-read RNA sequencing data. The pipeline performs quality control, alignment, classification, contamination detection, and transcript quantification for long-read RNA-seq data from plant samples.
+**longrnaseq** is a bioinformatics pipeline that processes long-read RNA sequencing data. The pipeline performs quality control, alignment, classification, contamination detection, and transcript quantification for long-read RNA-seq data from multiple samples.
 
 The pipeline includes the following main steps:
 
