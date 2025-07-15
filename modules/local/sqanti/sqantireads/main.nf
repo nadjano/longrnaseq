@@ -44,7 +44,8 @@ process SQANTIREADS {
     python ${params.sqanti_dir}/sqanti3_reads.py \\
         --design design.csv \\
         --annotation $annotation \\
-        $args
+        $args \\
+        --force_id_ignore
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

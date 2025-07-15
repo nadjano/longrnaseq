@@ -19,7 +19,7 @@
 
 
 
-
+![Just keep smiling](assets/pipeline.png)
 
 ## Introduction
 
@@ -81,7 +81,7 @@ nextflow run main.nf -resume -profile singularity \
 ### Optional Parameters
 
 - `--sqanti_dir`: Path to SQANTI3 installation directory (required for SQANTI analysis)
-- `--sqanti_test`: Enable test mode for SQANTI (processes only first 2 samples)
+- `--sqanti_test`: Enable test mode for SQANTI_reads(processes only first 2 samples)
 - `-bg`: Run pipeline in background
 - `-resume`: Resume previous run from where it left off
 

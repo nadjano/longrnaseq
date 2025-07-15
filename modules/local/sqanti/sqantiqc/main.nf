@@ -30,7 +30,8 @@ process SQANTIQC {
         --refGTF $annotation \\
         --refFasta $genome \\
         $args \\
-        -t $task.cpus -d ${prefix} -o ${prefix}
+        -t $task.cpus -d ${prefix} -o ${prefix} \\
+        --force_id_ignore
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

@@ -52,31 +52,31 @@ workflow RUN_SQANTI_READS {
 
 
     SPLICEDBAM2GFF.out.gff.view()
-    // SQANTIQC (
-    //             gff_channel,
-    //             ch_fasta,
-    //             ch_gtf
-    //             )
+    SQANTIQC (
+                gff_channel,
+                ch_fasta,
+                ch_gtf
+                )
 
-    // // Collect the gff files
-    // combined_sqanti_ch = SQANTIQC.out.sqanti_qc
-    // .toSortedList { a, b ->
-    //     // Sort by sample ID
-    //     a[0].id <=> b[0].id
-    // }
-    // .map { tuples ->
-    //     def metas = tuples.collect { it[0] }  // Extract all meta maps
-    //     def files = tuples.collect { it[1] }  // Extract all quant files
-    //     [metas, files]
-    // }
-    // combined_sqanti_ch.view()
-    //
+    // Collect the gff files
+    combined_sqanti_ch = SQANTIQC.out.sqanti_qc
+    .toSortedList { a, b ->
+        // Sort by sample ID
+        a[0].id <=> b[0].id
+    }
+    .map { tuples ->
+        def metas = tuples.collect { it[0] }  // Extract all meta maps
+        def files = tuples.collect { it[1] }  // Extract all quant files
+        [metas, files]
+    }
+    combined_sqanti_ch.view()
+
     // MODULES: RUN SQANTI READS
-    //
-    // SQANTIREADS (
-    //             combined_sqanti_ch,
-    //             ch_gtf
-    //             )
+
+    SQANTIREADS (
+                combined_sqanti_ch,
+                ch_gtf
+                )
 
 
     emit:
