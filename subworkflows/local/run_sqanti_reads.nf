@@ -37,9 +37,7 @@ workflow RUN_SQANTI_READS {
     SPLICEDBAM2GFF  ( SAMTOOLS_FILTER.out.bam
                     )
     ch_versions = ch_versions.mix(SPLICEDBAM2GFF.out.versions.first())
-    SPLICEDBAM2GFF.out.gff.view()
-    ch_fasta.view()
-    ch_gtf.view()
+
 
     //
     // MODULES: RUN SQANTI QC
@@ -82,7 +80,7 @@ workflow RUN_SQANTI_READS {
     emit:
     // TODO nf-core: edit emitted channels
     gff      = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
-
+    bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
 
     versions = ch_versions                     // channel: [ versions.yml ]
 }

@@ -2,8 +2,6 @@
 
 # longrnaseq
 
-
-
 ![Just keep smiling](assets/pipeline.png)
 
 ## Introduction
@@ -16,7 +14,7 @@ The pipeline includes the following main steps:
 2. Present QC for samples ([`MultiQC`](http://multiqc.info/))
 3. Genome alignment ([`Minimap2`](https://github.com/lh3/minimap2))
 4. Contamination detection ([`Centrifuge`](https://ccb.jhu.edu/software/centrifuge/))
-5. Transcript classification ([`SQANTI`](https://github.com/ConesaLab/SQANTI3))
+5. Comparion of samples by transcript classification ([`SQANTI-reads`](https://github.com/ConesaLab/SQANTI3))
 6. Transcript quantification ([`Oarfish`](https://github.com/COMBINE-lab/oarfish)) and gene-level summarization
 
 ## Dependencies
@@ -24,7 +22,7 @@ The pipeline includes the following main steps:
 An environment with nextflow (>=24.04.2) and Singularity installed.
 
 **Note:** If you want to run SQANTI-reads quality control, you will also need to:
-- Install all [SQANTI3 dependencies](https://github.com/ConesaLab/SQANTI3/blob/master/SQANTI3.conda_env.yml)
+- Install all [SQANTI3 dependencies](https://github.com/ConesaLab/SQANTI3/blob/master/SQANTI3.conda_env.yml) in the same environment as nextflow (sorry there is not functional singularity at the moment..)
 - Clone the [SQANTI3 git repository](https://github.com/ConesaLab/SQANTI3) and provide the directory as input
 
 For running Centrifuge, you also need to create a [Centrifuge database](https://ccb.jhu.edu/software/centrifuge/manual.shtml).
@@ -55,6 +53,7 @@ The pipeline requires the following mandatory parameters:
 - `--gtf`: Path to GTF annotation file
 - `--centrifuge_db`: Path to Centrifuge database
 - `--sqanti_dir`: Path to SQANTI3 directory
+- `--downsample_sqanti`: fraction between 0-1 for downsampling before running SQANTI3 to reduce runtime
 
 ### Profile Support
 
@@ -70,6 +69,7 @@ nextflow run main.nf -resume -profile singularity \
     --gtf /path/to/annotation.gtf \
     --centrifuge_db /path/to/centrifuge_db \
     --sqanti_dir /path/to/sqanti3
+    --downsample_sqanti fraction between 0-1 for downsampling before running sqanit
 ```
 
 ### Optional Parameters
@@ -78,17 +78,9 @@ nextflow run main.nf -resume -profile singularity \
 - `-bg`: Run pipeline in background
 - `-resume`: Resume previous run from where it left off
 
-### Important Notes
-
-
-> [!WARNING]
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
-
-For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/plantlongrnaseq/usage) and the [parameter documentation](https://nf-co.re/plantlongrnaseq/parameters).
-
 ## Pipeline output
 
-
+The main output is a MultiQC.html, SQANTI-reads output and oarfish transcript and gene counts.
 
 ## Credits
 

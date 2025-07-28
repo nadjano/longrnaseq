@@ -44,8 +44,7 @@ process SQANTIREADS {
     python ${params.sqanti_dir}/sqanti3_reads.py \\
         --design design.csv \\
         --annotation $annotation \\
-        $args \\
-        --force_id_ignore
+        $args
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -70,3 +69,29 @@ process SQANTIREADS {
     END_VERSIONS
     """
 }
+
+// pca.vals_mqc.tsv
+
+// #id: '_deseq2_pca'
+// #section_name: ' DESeq2 PCA plot'
+// #description: "PCA plot between samples in the experiment.
+// #              These values are calculated using <a href='https://bioconductor.org/packages/release/bioc/html/DESeq2.html'>DESeq2</a>
+// #              in the <a href='https://github.com/nf-core/rnaseq/blob/master/bin/deseq2_qc.r'><code>deseq2_qc.r</code></a> script."
+// #parent_id: 'sample-relationships'
+// #parent_name: 'Sample relationships'
+// #parent_description: 'Plots interrogating sample relationships, based on final count matrices'
+// #plot_type: 'scatter'
+// #anchor: '_deseq2_pca'
+// #pconfig:
+// #    title: 'DESeq2: Principal component plot'
+// #    xlab: PC1
+// #    ylab: PC2
+// "sample"        "PC1: 50% variance"     "PC2: 15% variance"
+// "DE_C_H_15"     -62.9202242220269       -29.4119474775929
+// "DE_C_H_16"     -42.7194679133331       25.7169528902837
+// "DE_C_H_13"     -39.9764950984932       27.3212767954681
+// "DE_C_H_14"     -32.1986742039744       35.8353716214637
+// "DE_H_H_19"     -27.7972636041262       -56.8915099345402
+// "DE_H_H_20"     65.2732060985042        -11.3737531415994
+// "DE_H_H_18"     66.5394688381687        -0.735548805395123
+// "DE_H_H_17"     73.7994501052807        9.53915805191234

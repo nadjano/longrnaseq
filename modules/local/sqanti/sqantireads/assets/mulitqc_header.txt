@@ -1,0 +1,13 @@
+#id: '_SQANTI_reads'
+#section_name: ' SQANTI-reads PCA plot'
+#description: "PCA plot between samples in the experiment.
+#              These values are calculated using SQANTI-reads"
+#parent_id: 'sample-relationships'
+#parent_name: 'Sample relationships'
+#parent_description: 'Plots interrogating sample relationships, based on final count matrices'
+#plot_type: 'scatter'
+#anchor: '_sqanti_reads_pca'
+#pconfig:
+#    title: 'SQANTI-reads: Principal component plot'
+#    xlab: PC1
+#    ylab: PC2

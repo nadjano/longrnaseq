@@ -34,4 +34,5 @@ nextflow run main.nf -resume -profile singularity \
                     --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/SQANTI3-5.1.2/SQANTI3 \
+                    --downsample_sqanti 0.05 \
                     -bg

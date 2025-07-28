@@ -26,6 +26,7 @@ include { SAMTOOLS_SORT as SAMTOOLS_SORT_TRANSRIPTOME } from '../modules/nf-core
 include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'
 include { DESEQ2_QC                                   } from '../modules/local/deseq2_qc/main'
 include { MERGE_COUNTS                                } from '../modules/local/merge_counts'
+include { BAMBU                                      } from '../modules/local/bambu/main'
 include { RUN_SQANTI_READS                            } from '../subworkflows/local/run_sqanti_reads'
 include { QUANTIFY_PSEUDO_ALIGNMENT                   } from '../subworkflows/local/quantify_pseudo_alignment/main'
 
@@ -242,6 +243,19 @@ workflow PLANTLONGRNASEQ {
                     ch_fasta.map { [ [:], it ] },
                     ch_gtf
                     )
+
+    //
+    // Run BAMBU on downsampled BAM files
+    //
+    ch_bam = RUN_SQANTI_READS.out.bam.map { it[1] }
+
+
+    RUN_SQANTI_READS.out.bam.collect{ it [1] }.view()
+
+    BAMBU ( ch_fasta,
+            ch_gtf,
+            RUN_SQANTI_READS.out.bam.collect{ it [1] } )
+
 
     //
     // Collate and save software versions
