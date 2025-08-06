@@ -18,7 +18,7 @@
 ################################################
 ################################################
 library(bambu)
-
+library(GenomeInfoDb)
 ################################################
 ################################################
 ## PARSE COMMAND-LINE PARAMETERS              ##
@@ -34,11 +34,14 @@ Rsamtools::indexFa(genomeseq)
 annot_gtf      <- strsplit(grep('--annotation*', args, value = TRUE), split = '=')[[1]][[2]]
 readlist       <- args[5:length(args)]
 
+
 ################################################
 ################################################
 ## RUN BAMBU                                  ##
 ################################################
 ################################################
 grlist <- prepareAnnotations(annot_gtf)
-se     <- bambu(reads = readlist, annotations = grlist, genome = genomeSequence, ncore = ncore, verbose = TRUE, quant = FALSE)
+
+se     <- bambu(reads = readlist, annotations = grlist, genome = genomeSequence, verbose = TRUE, discovery = TRUE, trackReads = TRUE, ncore = ncore)
 writeBambuOutput(se, output_tag)
+

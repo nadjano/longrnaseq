@@ -2,7 +2,7 @@
 // Quantification with Oarfish
 //
 
-include { OARFISH          } from '../../../../modules/modules/nf-core/oarfish/main'
+include { OARFISH          } from '../../../modules/local/oarfish/main'
 include { CUSTOM_TX2GENE   } from '../../../modules/nf-core/custom/tx2gene'
 include { TXIMETA_TXIMPORT } from '../../../modules/nf-core/tximeta/tximport'
 
@@ -47,7 +47,7 @@ workflow QUANTIFY_PSEUDO_ALIGNMENT {
         CUSTOM_TX2GENE.out.tx2gene,
         pseudo_aligner
     )
-    TXIMETA_TXIMPORT.out.tpm_gene.view()
+
     ch_versions = ch_versions.mix(TXIMETA_TXIMPORT.out.versions)
 
     ch_gene_unified = TXIMETA_TXIMPORT.out.counts_gene

@@ -100,14 +100,9 @@ workflow PLANTLONGRNASEQ {
 
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
-    //
-    // MODULE: Run GFFREAD to extract transcript sequences
-    //
-    // extract the spliced transcripts
-    GFFREAD_TRANSCRIPT(ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
-                       ch_fasta)
 
-    ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
+
+
     //
     // MODULE: Run Minimap2 alignment on gennome
     //
@@ -122,59 +117,7 @@ workflow PLANTLONGRNASEQ {
 
     ch_versions = ch_versions.mix(MINIMAP2_ALIGN_GENOME.out.versions.first())
 
-    //
-    // MODULE: Run Minimap2 alignment on transcripts
-    //
-    MINIMAP2_ALIGN_TRANSCRIPT (
-        ch_samplesheet,
-        GFFREAD_TRANSCRIPT.out.gffread_fasta,
-        true,
-        'bai',
-        false,
-        true
-    )
 
-    ch_versions = ch_versions.mix(MINIMAP2_ALIGN_TRANSCRIPT.out.versions.first())
-    //
-    //MODULE: Run SAMtools sort for transcriptome
-    //
-    SAMTOOLS_SORT_TRANSRIPTOME (
-        MINIMAP2_ALIGN_TRANSCRIPT.out.bam,
-        ch_fasta.map { [ [:], it ]}
-    )
-
-
-
-    //
-    // MODULE: Run Oarfish to quantify transcripts aligned
-    //
-    QUANTIFY_PSEUDO_ALIGNMENT (
-                ch_samplesheet.map { [ [:], it ] },
-                SAMTOOLS_SORT_TRANSRIPTOME.out.bam,
-                'oarfish',
-                ch_gtf,
-                params.gtf_group_features,        //     val: GTF gene ID attribute
-                params.gtf_extra_attributes)
-
-
-
-    ch_versions = ch_versions.mix(QUANTIFY_PSEUDO_ALIGNMENT.out.versions.first())
-
-
-    //
-    // MODULE: Run DESeq2 QC
-    //
-    if (!params.skip_deseq2_qc){
-        DESEQ2_QC (
-            QUANTIFY_PSEUDO_ALIGNMENT.out.counts_gene.map { it[1] },
-            ch_pca_header_multiqc,
-            ch_clustering_header_multiqc
-        )
-        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.pca_multiqc.collect())
-        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.dists_multiqc.collect())
-        ch_versions = ch_versions.mix(DESEQ2_QC.out.versions.first())
-
-    }
 
 
     //
@@ -243,18 +186,82 @@ workflow PLANTLONGRNASEQ {
                     ch_fasta.map { [ [:], it ] },
                     ch_gtf
                     )
-
     //
     // Run BAMBU on downsampled BAM files
     //
     ch_bam = RUN_SQANTI_READS.out.bam.map { it[1] }
 
-
-    RUN_SQANTI_READS.out.bam.collect{ it [1] }.view()
-
+    ////// TRANSCRIPT RECONSTRUCTION AND QUANTIFICATION
+    //
+    // MODULE: Run BAMBU to reconstruct transcripts
+    //
     BAMBU ( ch_fasta,
-            ch_gtf,
-            RUN_SQANTI_READS.out.bam.collect{ it [1] } )
+            ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
+            RUN_SQANTI_READS.out.bam.toSortedList { a, b -> a[0].id <=> b[0].id }.map { it.collect { tuple -> tuple[1] } }
+        )
+
+
+    ch_versions = ch_versions.mix(BAMBU.out.versions.first())
+    //
+    // MODULE: Run GFFREAD to extract transcript sequences
+    //
+    // extract the spliced transcripts including novel Bambu transcripts
+    GFFREAD_TRANSCRIPT(BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
+                       ch_fasta)
+        ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
+
+    //
+    // MODULE: Run Minimap2 alignment on transcripts + novel Bambu transcripts
+    //
+    MINIMAP2_ALIGN_TRANSCRIPT (
+        ch_samplesheet,
+        GFFREAD_TRANSCRIPT.out.gffread_fasta,
+        true,
+        'bai',
+        false,
+        true
+    )
+
+    ch_versions = ch_versions.mix(MINIMAP2_ALIGN_TRANSCRIPT.out.versions.first())
+    //
+    //MODULE: Run SAMtools sort for transcriptome
+    //
+    SAMTOOLS_SORT_TRANSRIPTOME (
+        MINIMAP2_ALIGN_TRANSCRIPT.out.bam,
+        ch_fasta.map { [ [:], it ]}
+    )
+
+    //
+    // MODULE: Run Oarfish to quantify transcripts aligned
+    //
+    QUANTIFY_PSEUDO_ALIGNMENT (
+                ch_samplesheet.map { [ [:], it ] },
+                SAMTOOLS_SORT_TRANSRIPTOME.out.bam,
+                'oarfish',
+                ch_gtf,
+                params.gtf_group_features,        //     val: GTF gene ID attribute
+                params.gtf_extra_attributes)
+
+
+    ch_versions = ch_versions.mix(QUANTIFY_PSEUDO_ALIGNMENT.out.versions.first())
+
+
+    //
+    // MODULE: Run DESeq2 QC
+    //
+    if (!params.skip_deseq2_qc){
+        DESEQ2_QC (
+            QUANTIFY_PSEUDO_ALIGNMENT.out.counts_gene.map { it[1] },
+            ch_pca_header_multiqc,
+            ch_clustering_header_multiqc
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.pca_multiqc.collect())
+        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.dists_multiqc.collect())
+        ch_versions = ch_versions.mix(DESEQ2_QC.out.versions.first())
+
+    }
+
+
 
 
     //

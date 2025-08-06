@@ -50,7 +50,7 @@ The pipeline requires the following mandatory parameters:
 - `--input`: Path to samplesheet CSV file
 - `--outdir`: Output directory path
 - `--fasta`: Path to reference genome FASTA file
-- `--gtf`: Path to GTF annotation file
+- `--gtf`: Path to GTF annotation file (for BAMBU to get the right output with gene_id!)
 - `--centrifuge_db`: Path to Centrifuge database
 - `--sqanti_dir`: Path to SQANTI3 directory
 - `--downsample_sqanti`: fraction between 0-1 for downsampling before running SQANTI3 to reduce runtime

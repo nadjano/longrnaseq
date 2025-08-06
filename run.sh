@@ -19,7 +19,7 @@ nextflow run main.nf -resume -profile singularity \
                     --input assets/samplesheet_desiree.csv \
                     --outdir output_desiree_unitato \
                     --fasta /scratch/markop/WORK/_p_Single-cell/_I_Optimization_of_protocols/_S_Chromium/_A_03_CellRanger-dry/input/UniTato_nuc_mt_plast.fa  \
-                    --gtf  /scratch/nadjafn/reference/UniTato_nuc_mt_plast.manualfix.nfn.gtf \
+                    --gtf  /scratch/nadjafn/reference/ADAPT_liftoff/UniTato_nuc_mt_plast.manualfix.nfn.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
                     --sqanti_test -bg
@@ -31,8 +31,24 @@ nextflow run main.nf -resume -profile singularity \
                     --input assets/samplesheet_desiree.csv \
                     --outdir output_desiree_liftoff_phased \
                     --fasta /scratch/nadjafn/reference/Desiree_v1/De_v1_no_scaffold_chloroplast_mt.fa \
-                    --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.gtf \
+                    --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/SQANTI3-5.1.2/SQANTI3 \
-                    --downsample_sqanti 0.05 \
+                    --downsample_sqanti 0.2 \
                     -bg
+
+
+# add the chloroplast and mitochondria to the annotation
+
+### Desiree
+
+### gff3 to gtf, use agat to perseve genes for bambu
+agat_convert_sp_gff2gtf.pl --gff /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap.gff3 -o /scratch/nadjafn/reference/De_v1.unitato_liftoff_haplotap.agat.gtf
+
+grep "OR9" /scratch/markop/WORK/_p_Single-cell/_I_Optimization_of_protocols/_S_Chromium/_A_03_CellRanger-dry/input/UniTato_nuc_mt_plast_PVY.manualfix.gtf > /scratch/nadjafn/reference/organelles/potato_mito.gtf
+
+grep "NC_" /scratch/markop/WORK/_p_Single-cell/_I_Optimization_of_protocols/_S_Chromium/_A_03_CellRanger-dry/input/UniTato_nuc_mt_plast_PVY.manualfix.gtf > /scratch/nadjafn/reference/organelles/potato_chloroplast.gtf
+
+cat   /scratch/nadjafn/reference/De_v1.unitato_liftoff_haplotap.agat.gtf /scratch/nadjafn/reference/organelles/potato_chloroplast.gtf /scratch/nadjafn/reference/organelles/potato_mito.gtf > /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf
+
+
