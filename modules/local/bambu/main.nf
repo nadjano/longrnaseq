@@ -1,5 +1,6 @@
 process BAMBU {
     label 'process_high'
+    label 'high_memory'
 
     conda "conda-forge::r-base=4.0.3 bioconda::bioconductor-bambu=3.0.8 bioconda::bioconductor-bsgenome=1.66.0"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -14,8 +15,6 @@ process BAMBU {
     path bams
 
     output:
-    path "counts_gene.txt"         , emit: ch_gene_counts
-    path "counts_transcript.txt"   , emit: ch_transcript_counts
     path "extended_annotations.gtf", emit: extended_gtf
     path "versions.yml"            , emit: versions
 
