@@ -34,7 +34,6 @@ nextflow run main.nf -resume -profile singularity \
                     --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/SQANTI3-5.1.2/SQANTI3 \
-                    --downsample_sqanti 0.2 \
                     -bg
 
 
@@ -52,3 +51,12 @@ grep "NC_" /scratch/markop/WORK/_p_Single-cell/_I_Optimization_of_protocols/_S_C
 cat   /scratch/nadjafn/reference/De_v1.unitato_liftoff_haplotap.agat.gtf /scratch/nadjafn/reference/organelles/potato_chloroplast.gtf /scratch/nadjafn/reference/organelles/potato_mito.gtf > /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf
 
 
+# run Atlantic with all isoforms but no UTRs
+nextflow run main.nf -resume -profile singularity \
+                    --input assets/samplesheet_atlantic.csv \
+                    --outdir output_atlantic_all_isoforms_no_UTR \
+                    --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.with_chloroplast_and_mito.fa \
+                    --gtf  /scratch/nadjafn/reference/Atlantic/ATL_v3.hc_gene_models.agat.exon2cds150.with_chloroplast_and_mito.no_scaffold.gtf \
+                    --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
+                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
+                    --sqanti_test -bg --technology ONT
