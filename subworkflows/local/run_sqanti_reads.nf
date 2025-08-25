@@ -31,22 +31,22 @@ workflow RUN_SQANTI_READS {
                 )
 
 
-    //
-    // MODULES: RUN SPLICEDBAM2GFF
-    //
-    SPLICEDBAM2GFF  ( SAMTOOLS_FILTER.out.bam
-                    )
-    ch_versions = ch_versions.mix(SPLICEDBAM2GFF.out.versions.first())
+    // //
+    // // MODULES: RUN SPLICEDBAM2GFF
+    // //
+    // SPLICEDBAM2GFF  ( SAMTOOLS_FILTER.out.bam
+    //                 )
+    // ch_versions = ch_versions.mix(SPLICEDBAM2GFF.out.versions.first())
 
 
-    //
-    // MODULES: RUN SQANTI QC
-    //
-    // For testing only select two samples
-    // Instead of reassigning, create a conditional channel
-    gff_channel = params.sqanti_test ?
-        SPLICEDBAM2GFF.out.gff.take(2) :
-        SPLICEDBAM2GFF.out.gff
+    // //
+    // // MODULES: RUN SQANTI QC
+    // //
+    // // For testing only select two samples
+    // // Instead of reassigning, create a conditional channel
+    // gff_channel = params.sqanti_test ?
+    //     SPLICEDBAM2GFF.out.gff.take(2) :
+    //     SPLICEDBAM2GFF.out.gff
 
 
     // SQANTIQC (
@@ -78,7 +78,7 @@ workflow RUN_SQANTI_READS {
 
     emit:
     // TODO nf-core: edit emitted channels
-    gff      = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
+    // gff      = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
     bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
 
     versions = ch_versions                     // channel: [ versions.yml ]
