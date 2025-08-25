@@ -91,7 +91,7 @@
                 "technology": {
                     "type": "string",
                     "description": "The technology that was used to generate the long-read RNA-seq data, ONT or PacBio.\n\n",
-                    "help_text": "Based on the technology the minimap2 parameters will be set for genome and transcriptome alignment",
+                    "help_text": "Based on the technology the minimap2 parameters will be set for genome and transcriptome alignment. They are choosed based on [this](https://github.com/lh3/minimap2)",
                     "fa_icon": "fas fa-cogs",
                     "enum": ["ONT", "PacBio"]
                 },
