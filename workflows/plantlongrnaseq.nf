@@ -29,6 +29,7 @@ include { MERGE_COUNTS                                } from '../modules/local/m
 include { BAMBU                                      } from '../modules/local/bambu/main'
 include { RUN_SQANTI_READS                            } from '../subworkflows/local/run_sqanti_reads'
 include { QUANTIFY_PSEUDO_ALIGNMENT                   } from '../subworkflows/local/quantify_pseudo_alignment/main'
+include { SAMTOOLS_MANIPULATION                        } from '../modules/local/samtools_manipulation/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -193,11 +194,23 @@ workflow PLANTLONGRNASEQ {
 
     ////// TRANSCRIPT RECONSTRUCTION AND QUANTIFICATION
     //
+    // MODULE: Manipulate MAPQ values in BAM files as it seems
+    //         BAMBU does not consider reads with MAPQ values of 0
+    //
+
+    SAMTOOLS_MANIPULATION (
+                ch_bam.map { bam -> [["id": bam.simpleName], bam] },
+                ch_fasta.map { [ [:], it ] },
+                [], // qname
+                'bai' // index_format
+                )
+
+    //
     // MODULE: Run BAMBU to reconstruct transcripts
     //
     BAMBU ( ch_fasta,
             ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
-            RUN_SQANTI_READS.out.bam.toSortedList { a, b -> a[0].id <=> b[0].id }.map { it.collect { tuple -> tuple[1] } }
+            SAMTOOLS_MANIPULATION.out.bam.toSortedList { a, b -> a[0].id <=> b[0].id }.map { it.collect { tuple -> tuple[1] } }
         )
 
 
@@ -238,7 +251,7 @@ workflow PLANTLONGRNASEQ {
                 ch_samplesheet.map { [ [:], it ] },
                 SAMTOOLS_SORT_TRANSRIPTOME.out.bam,
                 'oarfish',
-                ch_gtf,
+                BAMBU.out.extended_gtf,  // use the extended GTF from BAMBU
                 params.gtf_group_features,        //     val: GTF gene ID attribute
                 params.gtf_extra_attributes)
 
