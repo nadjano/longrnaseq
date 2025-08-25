@@ -42,6 +42,9 @@ readlist       <- args[5:length(args)]
 ################################################
 grlist <- prepareAnnotations(annot_gtf)
 
-se     <- bambu(reads = readlist, annotations = grlist, genome = genomeSequence, verbose = TRUE, discovery = TRUE, trackReads = TRUE, ncore = ncore)
-writeBambuOutput(se, output_tag)
+
+
+se  <- bambu(reads = readlist, annotations = grlist, genome = genomeSequence, verbose = TRUE, discovery = TRUE, ncore = ncore, quant = FALSE)
+#writeBambuOutput(se, output_tag)
+writeToGTF(se, "./extended_annotations.gtf")
 
