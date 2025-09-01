@@ -40,7 +40,6 @@ process OARFISH {
     """
     mkdir $prefix && oarfish $args \\
             -j $task.cpus \\
-            --seq-tech pac-bio-hifi \\
             --alignments $bam \\
             -o $prefix \\
             --filter-group no-filters \\
