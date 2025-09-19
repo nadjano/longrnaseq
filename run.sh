@@ -60,3 +60,36 @@ nextflow run main.nf -resume -profile singularity \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
                     --sqanti_test -bg --technology ONT
+
+# run Atlantic with liftoff
+nextflow run main.nf -resume -profile singularity \
+                    --input assets/samplesheet_atlantic.csv \
+                    --outdir output_atlantic_liftoff \
+                    --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.with_chloroplast_and_mito.fa \
+                    --gtf  /scratch/nadjafn/reference/Atlantic/unitato2Atl.with_chloroplast_and_mito.no_scaffold.agat.gtf \
+                    --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
+                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
+                    --sqanti_test -bg --technology ONT
+
+
+#### Wheat AK58 example
+nextflow run main.nf -resume -profile singularity \
+                    --input assets/samplesheet_AK58.csv \
+                    --outdir output_wheat_AK58 \
+                    --fasta /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/wheat_example/genome/GWHANRF00000000.renamed.no_scaffold.fasta \
+                    --gtf  /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/wheat_example/genome/GWHANRF00000000.renamed.cds2exon.no_scaffold.gtf \
+                    --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
+                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
+                    --sqanti_test -bg --technology PacBio --large_genome
+
+
+
+### Rice Nipponbare example
+nextflow run main.nf -resume -profile singularity \
+                    --input assets/samplesheet_rice_Nip.csv \
+                    --outdir output_rice_Nip \
+                    --fasta /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/rice_example/genome/Hap1_2_Nipponbare.renamed.organels.fasta \
+                    --gtf   /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/rice_example/genome/Hap1_2_Nipponbare.genome.renamed.organels.standard.gtf \
+                    --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
+                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
+                    --sqanti_test -bg --technology ONT

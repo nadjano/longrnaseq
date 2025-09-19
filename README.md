@@ -55,6 +55,10 @@ The pipeline requires the following mandatory parameters:
 - `--sqanti_dir`: Path to SQANTI3 directory
 - `--downsample_sqanti`: fraction between 0-1 for downsampling before running SQANTI3 to reduce runtime
 
+*Note about gtf file*
+gtf-version 3
+should include features: gene, transcript, exon, CDS
+
 ### Profile Support
 
 Currently, only the `singularity` profile is supported. Use `-profile singularity` in your command.
@@ -68,10 +72,10 @@ nextflow run main.nf -resume -profile singularity \
     --fasta /path/to/genome.fa \
     --gtf /path/to/annotation.gtf \
     --centrifuge_db /path/to/centrifuge_db \
-    --sqanti_dir /path/to/sqanti3
-    --downsample_sqanti fraction between 0-1 for downsampling before running sqanit
+    --sqanti_dir /path/to/sqanti3 \
+    --technology ONT/PacBio
 ```
-
+## Note at the moment sqanti-reads is not run so you don't need to specific an actucal sqanti_dir
 ### Optional Parameters
 
 - `--sqanti_test`: Enable test mode for SQANTI_reads(processes only first 2 samples)
