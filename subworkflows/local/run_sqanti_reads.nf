@@ -27,7 +27,7 @@ workflow RUN_SQANTI_READS {
                 ch_bam,
                 ch_fasta,
                 [], // qname
-                'bai' // index_format
+                'csi' // index_format, for large genomes csi is required
                 )
 
 
