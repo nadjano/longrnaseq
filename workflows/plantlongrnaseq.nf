@@ -111,14 +111,12 @@ workflow PLANTLONGRNASEQ {
         ch_samplesheet,
         ch_fasta.map { [ [:], it ] },
         true,
-        'bai',
+        'csi', // bai
         false,
         true
     )
 
     ch_versions = ch_versions.mix(MINIMAP2_ALIGN_GENOME.out.versions.first())
-
-
 
 
     //
@@ -202,7 +200,7 @@ workflow PLANTLONGRNASEQ {
                 ch_bam.map { bam -> [["id": bam.simpleName], bam] },
                 ch_fasta.map { [ [:], it ] },
                 [], // qname
-                'bai' // index_format
+                'csi' // index_format
                 )
 
     //
