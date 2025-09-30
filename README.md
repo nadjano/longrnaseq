@@ -73,12 +73,13 @@ nextflow run main.nf -resume -profile singularity \
     --gtf /path/to/annotation.gtf \
     --centrifuge_db /path/to/centrifuge_db \
     --sqanti_dir /path/to/sqanti3 \
-    --technology ONT/PacBio
+    --technology ONT/PacBio \
+    --skip_sqanti
 ```
 ## Note at the moment sqanti-reads is not run so you don't need to specific an actucal sqanti_dir
 ### Optional Parameters
 
-- `--sqanti_test`: Enable test mode for SQANTI_reads(processes only first 2 samples)
+- `--skip_sqanti`: Skip sqanit and sqanti reads
 - `-bg`: Run pipeline in background
 - `-resume`: Resume previous run from where it left off
 

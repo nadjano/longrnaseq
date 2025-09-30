@@ -30,57 +30,66 @@ workflow RUN_SQANTI_READS {
                 'csi' // index_format, for large genomes csi is required
                 )
 
-
-    // //
-    // // MODULES: RUN SPLICEDBAM2GFF
-    // //
-    // SPLICEDBAM2GFF  ( SAMTOOLS_FILTER.out.bam
-    //                 )
-    // ch_versions = ch_versions.mix(SPLICEDBAM2GFF.out.versions.first())
-
-
-    // //
-    // // MODULES: RUN SQANTI QC
-    // //
-    // // For testing only select two samples
-    // // Instead of reassigning, create a conditional channel
-    // gff_channel = params.sqanti_test ?
-    //     SPLICEDBAM2GFF.out.gff.take(2) :
-    //     SPLICEDBAM2GFF.out.gff
+    if (!params.skip_sqanti) {
+        //
+        // MODULES: RUN SPLICEDBAM2GFF
+        //
+        SPLICEDBAM2GFF  ( SAMTOOLS_FILTER.out.bam
+                        )
+        ch_versions = ch_versions.mix(SPLICEDBAM2GFF.out.versions.first())
 
 
-    // SQANTIQC (
-    //             gff_channel,
-    //             ch_fasta,
-    //             ch_gtf
-    //             )
-
-    // // Collect the gff files
-    // combined_sqanti_ch = SQANTIQC.out.sqanti_qc
-    // .toSortedList { a, b ->
-    //     // Sort by sample ID
-    //     a[0].id <=> b[0].id
-    // }
-    // .map { tuples ->
-    //     def metas = tuples.collect { it[0] }  // Extract all meta maps
-    //     def files = tuples.collect { it[1] }  // Extract all quant files
-    //     [metas, files]
-    // }
+        //
+        // MODULES: RUN SQANTI QC
+        //
+        // For testing only select two samples
+        // Instead of reassigning, create a conditional channel
+        gff_channel = params.sqanti_test ?
+            SPLICEDBAM2GFF.out.gff.take(2) :
+            SPLICEDBAM2GFF.out.gff
 
 
-    // // MODULES: RUN SQANTI READS
+        SQANTIQC (
+                    gff_channel,
+                    ch_fasta,
+                    ch_gtf
+                    )
 
-    // SQANTIREADS (
-    //             combined_sqanti_ch,
-    //             ch_gtf
-    //             )
+        // Collect the gff files
+        combined_sqanti_ch = SQANTIQC.out.sqanti_qc
+        .toSortedList { a, b ->
+            // Sort by sample ID
+            a[0].id <=> b[0].id
+        }
+        .map { tuples ->
+            def metas = tuples.collect { it[0] }  // Extract all meta maps
+            def files = tuples.collect { it[1] }  // Extract all quant files
+            [metas, files]
+        }
 
+
+        // MODULES: RUN SQANTI READS
+
+        SQANTIREADS (
+                    combined_sqanti_ch,
+                    ch_gtf
+                    )
+
+
+        emit:
+        // TODO nf-core: edit emitted channels
+        gff      = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
+        sqanti_qc = SQANTIQC.out.sqanti_qc         // channel: [ val(meta), [ qc ] ]
+        bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
+        versions = ch_versions                     // channel: [ versions.yml ]
+
+    }
 
     emit:
     // TODO nf-core: edit emitted channels
-    // gff      = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
     bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
+    versions = ch_versions
 
-    versions = ch_versions                     // channel: [ versions.yml ]
+
 }
 

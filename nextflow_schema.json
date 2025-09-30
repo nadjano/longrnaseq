@@ -118,6 +118,29 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip DESeq2 PCA and heatmap plotting."
+                },
+                "skip_sqanti": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip SQANTI reads analysis."
+                }
+            }
+        },
+        "tool_directories": {
+            "title": "Tool directories",
+            "type": "object",
+            "fa_icon": "fas fa-folder",
+            "description": "Paths to tool directories.",
+            "properties": {
+                "centrifuge_db": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Path to the Centrifuge database."
+                },
+                "sqanti_dir": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Path to the SQANTI installation."
                 }
             }
         },
