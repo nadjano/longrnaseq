@@ -1,0 +1,9 @@
+channels:
+- conda-forge
+- bioconda
+dependencies:
+- pip
+- pip:
+  - argparse==1.4.0
+  - pathlib==1.0.1
+  - pysam==0.23.3
