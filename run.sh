@@ -28,13 +28,13 @@ nextflow run main.nf -resume -profile singularity \
 
 ### Desiree with desiree liftoff reference
 nextflow run main.nf -resume -profile singularity \
-                    --input assets/samplesheet_desiree.csv \
-                    --outdir output_desiree_liftoff_phased \
+                    --input assets/samplesheet_desiree_two_samples.csv \
+                    --outdir output_desiree_liftoff_phased_two_samples \
                     --fasta /scratch/nadjafn/reference/Desiree_v1/De_v1_no_scaffold_chloroplast_mt.fa \
                     --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/SQANTI3-5.1.2/SQANTI3 \
-                    -bg
+                    -bg --technology PacBio
 
 
 # add the chloroplast and mitochondria to the annotation

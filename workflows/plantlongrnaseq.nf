@@ -27,9 +27,11 @@ include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/
 include { DESEQ2_QC                                   } from '../modules/local/deseq2_qc/main'
 include { MERGE_COUNTS                                } from '../modules/local/merge_counts'
 include { BAMBU                                      } from '../modules/local/bambu/main'
+include { SAMTOOLS_MANIPULATION                        } from '../modules/local/samtools_manipulation/main'
 include { RUN_SQANTI_READS                            } from '../subworkflows/local/run_sqanti_reads'
 include { QUANTIFY_PSEUDO_ALIGNMENT                   } from '../subworkflows/local/quantify_pseudo_alignment/main'
-include { SAMTOOLS_MANIPULATION                        } from '../modules/local/samtools_manipulation/main'
+include { ALIGNMENT_VISUALISATION                     } from '../subworkflows/local/alignment_visualisation'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,6 +120,12 @@ workflow PLANTLONGRNASEQ {
 
     ch_versions = ch_versions.mix(MINIMAP2_ALIGN_GENOME.out.versions.first())
 
+    // SUBWORKFLOW: Downsample BAM files and haplotag for visualisation
+    ALIGNMENT_VISUALISATION (
+                MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
+                ch_fasta.map { [ [:], it ] }
+                )
+
 
     //
     // SUBWORKFLOW: Run SAMtools stats, flagstat and idxstats
@@ -177,19 +185,6 @@ workflow PLANTLONGRNASEQ {
 
     ch_multiqc_files = ch_multiqc_files.mix(CENTRIFUGE_KREPORT.out.kreport.collect{it[1]})
 
-    //
-    // SUBWORKFLOW: Run SQANTI on reads
-    //
-    RUN_SQANTI_READS(
-                    MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
-                    ch_fasta.map { [ [:], it ] },
-                    ch_gtf
-                    )
-    //
-    // Run BAMBU on downsampled BAM files
-    //
-    ch_bam = RUN_SQANTI_READS.out.bam.map { it[1] }
-
     ////// TRANSCRIPT RECONSTRUCTION AND QUANTIFICATION
     //
     // MODULE: Manipulate MAPQ values in BAM files as it seems
@@ -210,9 +205,20 @@ workflow PLANTLONGRNASEQ {
             ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
             SAMTOOLS_MANIPULATION.out.bam.toSortedList { a, b -> a[0].id <=> b[0].id }.map { it.collect { tuple -> tuple[1] } }
         )
-
-
     ch_versions = ch_versions.mix(BAMBU.out.versions.first())
+
+    //
+    // SUBWORKFLOW: Run SQANTI on reads and BAMBU annotation
+    //
+    RUN_SQANTI_READS(
+                    MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
+                    ch_fasta.map { [ [:], it ] },
+                    BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }
+                    )
+
+    ch_bam = RUN_SQANTI_READS.out.bam.map { it[1] }
+
+
     //
     // MODULE: Run GFFREAD to extract transcript sequences
     //

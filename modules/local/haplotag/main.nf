@@ -5,11 +5,12 @@ process HAPLOTAG {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/pip_argparse_pathlib_pysam:cd0e0e12af05b6d4' :
+        'community.wave.seqera.io/library/pip_argparse_pathlib_pysam:bdbdbf01755d4994' :
         'community.wave.seqera.io/library/pip_argparse_pathlib_pysam:bdbdbf01755d4994' }"
 
+
     input:
-    tuple val(meta), path(bam), path(index)
+    tuple val(meta), path(bam)
 
     output:
     tuple val(meta), path("*.haplotagged.bam"), emit: bam
@@ -24,7 +25,7 @@ process HAPLOTAG {
 
     """
     python \\
-        \${ task.ext.script_path ?: "${projectDir}/bin/primary_alignment_tag.py" } \\
+        ${projectDir}/bin/primary_alignment_haplotag.py \\
         -i ${bam} \\
         -o ${prefix}.haplotagged.bam \\
         -t HP \\
