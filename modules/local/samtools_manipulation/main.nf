@@ -52,10 +52,8 @@ process SAMTOOLS_MANIPULATION {
 
     """
     samtools view --threads ${task.cpus-1} -h -o - $input $args2 | \
-    awk 'BEGIN{OFS="\\t"} /^@/ {print; next} \$5==0 {\$5=60} {print}' | \
+    awk 'BEGIN{OFS="\\t"} /^@/ {print; next} \$5==0 {\$5=60} {gsub(/tp:A:S/, "tp:A:P")} {print}' | \
     samtools view --threads ${task.cpus-1} ${reference} ${readnames} -b -o ${output_file} - &&
-
-
 
 
     cat <<-END_VERSIONS > versions.yml
