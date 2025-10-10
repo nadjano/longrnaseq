@@ -69,16 +69,6 @@
                     "fa_icon": "fas fa-code-branch",
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified."
                 },
-                "gff": {
-                    "type": "string",
-                    "format": "file-path",
-                    "exists": true,
-                    "mimetype": "text/plain",
-                    "pattern": "^\\S+\\.gff(\\.gz)?$",
-                    "fa_icon": "fas fa-code-branch",
-                    "description": "Path to GFF3 annotation file.",
-                    "help_text": "This parameter must be specified if `--genome` or `--gtf` are not specified."
-                },
                 "gtf_extra_attributes": {
                     "type": "string",
                     "description": "Additional attributes to include in the GTF file.",

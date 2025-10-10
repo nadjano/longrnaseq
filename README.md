@@ -54,7 +54,8 @@ The pipeline requires the following mandatory parameters:
 - `--gtf`: Path to GTF annotation file (for BAMBU to get the right output with gene_id!)
 - `--centrifuge_db`: Path to Centrifuge database
 - `--sqanti_dir`: Path to SQANTI3 directory
-- `--downsample_sqanti`: fraction between 0-1 for downsampling before running SQANTI3 to reduce runtime
+- `--technology`: ONT or PacBio, sets minimap2 parameters for read mapping
+
 
 *Note about gtf file*
 gtf-version 3
@@ -75,14 +76,16 @@ nextflow run main.nf -resume -profile singularity \
     --centrifuge_db /path/to/centrifuge_db \
     --sqanti_dir /path/to/sqanti3 \
     --technology ONT/PacBio \
-    --skip_sqanti
+
 ```
 ##
 ### Optional Parameters
-
-- `--skip_sqanti`: Skip sqanit and sqanti reads
+- `--skip_deseq2_qc`: Skip deseq2, when only one sample is present deseq2 will fail [default: false]
+- `--skip_sqanti`: Skip sqanit and sqanti reads [default: false]
 - `-bg`: Run pipeline in background
 - `-resume`: Resume previous run from where it left off
+- `--downsample_rate`: fraction between 0-1 for downsampling before running SQANTI3 to reduce runtime and for vizualization to have smaller files [default: 0.05]
+- `--large_genome`: In case minimap2 fails druing genome indexing, this can be due to large genomes and long chromosomes. [default: false]
 
 ## Pipeline output
 

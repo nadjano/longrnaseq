@@ -28,12 +28,12 @@ nextflow run main.nf -resume -profile singularity \
 
 ### Desiree with desiree liftoff reference
 nextflow run main.nf -resume -profile singularity \
-                    --input assets/samplesheet_desiree_two_samples.csv \
-                    --outdir output_desiree_liftoff_phased_two_samples \
+                    --input assets/samplesheet_desiree.csv \
+                    --outdir output_desiree_liftoff_phased \
                     --fasta /scratch/nadjafn/reference/Desiree_v1/De_v1_no_scaffold_chloroplast_mt.fa \
                     --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
-                    --sqanti_dir /scratch/nadjafn/SQANTI3-5.1.2/SQANTI3 \
+                    --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
                     -bg --technology PacBio
 
 
@@ -91,5 +91,5 @@ nextflow run main.nf -resume -profile singularity \
                     --fasta /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/rice_example/genome/Hap1_2_Nipponbare.renamed.organels.fasta \
                     --gtf   /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/rice_example/genome/Hap1_2_Nipponbare.genome.renamed.organels.standard.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
-                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
-                    --sqanti_test -bg --technology ONT
+                    --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
+                    -bg --technology ONT

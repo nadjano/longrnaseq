@@ -50,7 +50,6 @@ workflow NFCORE_PLANTLONGRNASEQ {
     PLANTLONGRNASEQ (
         samplesheet,
         params.fasta,
-        params.gff,
         params.gtf
     )
     emit:

@@ -49,7 +49,6 @@ workflow PLANTLONGRNASEQ {
     take:
     ch_samplesheet // channel: samplesheet read in from --input
     reads       // channel: path(genome.fasta)
-    gff         // channel: path(genome.gff)
     gtf         // channel: path(genome.gtf)
 
     main:
@@ -71,27 +70,15 @@ workflow PLANTLONGRNASEQ {
         ch_fasta    = Channel.value(file(reads, checkIfExists: true))
     }
     //
-    // Uncompress GTF annotation file or create from GFF3 if required
+    // Uncompress GTF annotation file # TODO: add gff option
     //
-    if (gtf || gff) {
-        if (gtf) {
-            if (gtf.endsWith('.gz')) {
+    if (gtf.endsWith('.gz')) {
                 ch_gtf      = GUNZIP_GTF ( [ [:], file(gtf, checkIfExists: true) ] ).gunzip.map { it[1] }
                 ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
             } else {
                 ch_gtf = Channel.value(file(gtf, checkIfExists: true))
-            }
-        } else if (gff) {
-            if (gff.endsWith('.gz')) {
-                ch_gff      = GUNZIP_GFF ( [ [:], file(gff, checkIfExists: true) ] ).gunzip
-                ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
-            } else {
-                ch_gff = Channel.value(file(gff, checkIfExists: true)).map { [ [:], it ] }
-            }
-            ch_gtf      = GFFREAD ( ch_gff, [] ).gtf.map { it[1] }
-            ch_versions = ch_versions.mix(GFFREAD.out.versions)
-        }
     }
+
     //
     // MODULE: Run FastQC
     //
