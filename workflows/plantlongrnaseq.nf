@@ -192,7 +192,7 @@ workflow PLANTLONGRNASEQ {
     //
 
     SAMTOOLS_MANIPULATION (
-                ch_bam.map { bam -> [["id": bam.simpleName], bam] },
+                MINIMAP2_ALIGN_GENOME.out.bam,
                 ch_fasta.map { [ [:], it ] },
                 [], // qname
                 'csi' // index_format
@@ -213,19 +213,17 @@ workflow PLANTLONGRNASEQ {
     RUN_SQANTI_READS(
                     MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
                     ch_fasta.map { [ [:], it ] },
-                    BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }
+                    BAMBU.out.extended_gtf
                     )
-
-    ch_bam = RUN_SQANTI_READS.out.bam.map { it[1] }
-
-
+    // ch_versions = ch_versions.mix(RUN_SQANTI_READS.out.versions.first())
+    ch_multiqc_files = ch_multiqc_files.mix(RUN_SQANTI_READS.out.multiqc.collect())
     //
     // MODULE: Run GFFREAD to extract transcript sequences
     //
     // extract the spliced transcripts including novel Bambu transcripts
     GFFREAD_TRANSCRIPT(BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
                        ch_fasta)
-        ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
+    ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
 
     //
     // MODULE: Run Minimap2 alignment on transcripts + novel Bambu transcripts
