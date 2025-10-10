@@ -42,11 +42,8 @@ workflow RUN_SQANTI_READS {
         //
         // MODULES: RUN SQANTI QC
         //
-        // For testing only select two samples
-        // Instead of reassigning, create a conditional channel
-        gff_channel = params.sqanti_test ?
-            SPLICEDBAM2GFF.out.gff.take(2) :
-            SPLICEDBAM2GFF.out.gff
+
+        gff_channel = SPLICEDBAM2GFF.out.gff
 
 
         SQANTIQC (
@@ -54,7 +51,7 @@ workflow RUN_SQANTI_READS {
                     ch_fasta,
                     ch_gtf
                     )
-
+        ch_versions = ch_versions.mix(SQANTIQC.out.versions.first())
         // Collect the gff files
         combined_sqanti_ch = SQANTIQC.out.sqanti_qc
         .toSortedList { a, b ->
@@ -74,14 +71,15 @@ workflow RUN_SQANTI_READS {
                     combined_sqanti_ch,
                     ch_gtf
                     )
-
+        ch_versions = ch_versions.mix(SQANTIREADS.out.versions.first())
 
         emit:
         // TODO nf-core: edit emitted channels
-        gff      = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
+        gff       = SPLICEDBAM2GFF.out.gff          // channel: [ val(meta), [ gff ] ]
         sqanti_qc = SQANTIQC.out.sqanti_qc         // channel: [ val(meta), [ qc ] ]
-        bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
-        versions = ch_versions                     // channel: [ versions.yml ]
+        bam       = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
+        multiqc   =  SQANTIREADS.out.multiqc   // channel: [ _mqc.png ]
+        versions  = ch_versions                     // channel: [ versions.yml ]
 
     }
 
@@ -89,6 +87,7 @@ workflow RUN_SQANTI_READS {
     // TODO nf-core: edit emitted channels
     bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
     versions = ch_versions
+    multiqc  =  SQANTIREADS.out.multiqc
 
 
 }
