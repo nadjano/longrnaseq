@@ -22,8 +22,9 @@ The pipeline includes the following main steps:
 An environment with nextflow (>=24.04.2) and Singularity installed.
 
 **Note:** If you want to run SQANTI-reads quality control, you will also need to:
-- Install all [SQANTI3 dependencies](https://github.com/ConesaLab/SQANTI3/blob/master/SQANTI3.conda_env.yml) in the same environment as nextflow (sorry there is not functional singularity at the moment..)
-- Clone the [SQANTI3 git repository](https://github.com/ConesaLab/SQANTI3) and provide the directory as input
+- Install all [SQANTI3 dependencies](https://github.com/ConesaLab/SQANTI3/blob/master/SQANTI3.conda_env.yml) in the same environment as nextflow/nf-core (sorry there is not functional singularity at the moment..)
+*Important*: for converting output to html poppler also need to be installed: conda install poppler
+- Clone the [SQANTI3 git repository](https://github.com/ConesaLab/SQANTI3) and provide the directory as input. v >=5.5.1
 
 For running Centrifuge, you also need to create a [Centrifuge database](https://ccb.jhu.edu/software/centrifuge/manual.shtml).
 
@@ -76,7 +77,7 @@ nextflow run main.nf -resume -profile singularity \
     --technology ONT/PacBio \
     --skip_sqanti
 ```
-## Note at the moment sqanti-reads is not run so you don't need to specific an actucal sqanti_dir
+##
 ### Optional Parameters
 
 - `--skip_sqanti`: Skip sqanit and sqanti reads
