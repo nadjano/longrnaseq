@@ -18,7 +18,8 @@ process SQANTIREADS {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(meta), path("*.pdf"), emit: pdf
+    tuple val(meta), path("*.html"), emit: html
+    path "*_mqc.png"               , emit: multiqc
     // TODO nf-core: List additional required output channels/values here
     path "versions.yml"           , emit: versions
 
@@ -44,7 +45,11 @@ process SQANTIREADS {
     python ${params.sqanti_dir}/sqanti3_reads.py \\
         --design design.csv \\
         --annotation $annotation \\
+        --report html \\
         $args
+
+    # extract the second plot to png for multiqc
+        grep -o 'data:image/png;base64,[^"]*' sqantiReads_plots.html | sed -n '2p' | sed 's/data:image\\/png;base64,//' | base64 -d > sqanitReads_mqc.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
