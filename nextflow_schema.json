@@ -80,12 +80,9 @@
                     "help_text": "This parameter must be specified if `--genome` or `--gtf` are not specified."
                 },
                 "gtf_extra_attributes": {
-                    "type": "array",
+                    "type": "string",
                     "description": "Additional attributes to include in the GTF file.",
-                    "fa_icon": "fas fa-code-branch",
-                    "items": {
-                        "type": "string"
-                    }
+                    "fa_icon": "fas fa-code-branch"
                 },
                 "gtf_group_features": {
                     "type": "string",
@@ -121,7 +118,7 @@
                 },
                 "downsample_rate": {
                     "type": "number",
-                    "description": "Proportion of reads to keep when downsampling BAM files for visualisation (between 0 and 1).",
+                    "description": "Proportion of reads to keep when downsampling BAM files for visualisation and sqanti analysis (between 0 and 1).",
                     "fa_icon": "fas fa-compress",
                     "default": 0.05,
                     "minimum": 0,
