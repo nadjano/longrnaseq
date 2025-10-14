@@ -25,9 +25,13 @@ process SQANTIQC {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+
+    # remove lines with '.' as strand as this will cause sqanti to fail
+    awk -F'\\t' '\$7 != "."' $annotation > temp.tsv && mv temp.tsv bambu_annotation.gtf
+
     python ${params.sqanti_dir}/sqanti3_qc.py \\
         --isoforms $gff \\
-        --refGTF $annotation \\
+        --refGTF bambu_annotation.gtf \\
         --refFasta $genome \\
         $args \\
         -t $task.cpus -d ${prefix} -o ${prefix} \\
