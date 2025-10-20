@@ -75,7 +75,6 @@ workflow {
         params.outdir,
         params.input,
         params.fasta,
-        params.gff,
         params.gtf
     )
 
