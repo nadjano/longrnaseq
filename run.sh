@@ -68,8 +68,17 @@ nextflow run main.nf -resume -profile singularity \
                     --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.with_chloroplast_and_mito.fa \
                     --gtf  /scratch/nadjafn/reference/Atlantic/unitato2Atl.with_chloroplast_and_mito.no_scaffold.agat.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
-                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
-                    --sqanti_test -bg --technology ONT
+                    --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
+                    -bg --technology ONT
+
+nextflow run main.nf -resume -profile singularity \
+                    --input assets/samplesheet_atlantic.csv \
+                    --outdir output_atlantic_liftoff \
+                    --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.with_chloroplast_and_mito.fa \
+                    --gtf  /scratch/nadjafn/reference/Atlantic/unitato2Atl.with_chloroplast_and_mito.no_scaffold.agat.gtf \
+                    --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
+                    --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
+                    -bg --technology ONT
 
 
 #### Wheat AK58 example
