@@ -26,11 +26,11 @@ include { SAMTOOLS_SORT as SAMTOOLS_SORT_TRANSRIPTOME } from '../modules/nf-core
 include { PBTK_BAM2FASTQ                             } from '../modules/nf-core/pbtk/bam2fastq/main'
 include { DESEQ2_QC                                   } from '../modules/local/deseq2_qc/main'
 include { MERGE_COUNTS                                } from '../modules/local/merge_counts'
-include { BAMBU                                      } from '../modules/local/bambu/main'
 include { SAMTOOLS_MANIPULATION                        } from '../modules/local/samtools_manipulation/main'
 include { RUN_SQANTI_READS                            } from '../subworkflows/local/run_sqanti_reads'
 include { QUANTIFY_PSEUDO_ALIGNMENT                   } from '../subworkflows/local/quantify_pseudo_alignment/main'
 include { ALIGNMENT_VISUALISATION                     } from '../subworkflows/local/alignment_visualisation'
+include { NOVEL_TRANSCRIPT_IDENTIFICATION            } from '../subworkflows/local/novel_transcript_identification'
 
 
 /*
@@ -178,37 +178,37 @@ workflow PLANTLONGRNASEQ {
     //         BAMBU does not consider reads with MAPQ values of 0
     //
 
-    SAMTOOLS_MANIPULATION (
-                MINIMAP2_ALIGN_GENOME.out.bam,
-                ch_fasta.map { [ [:], it ] },
-                [], // qname
-                'csi' // index_format
-                )
+    // SAMTOOLS_MANIPULATION (
+    //             MINIMAP2_ALIGN_GENOME.out.bam,
+    //             ch_fasta.map { [ [:], it ] },
+    //             [], // qname
+    //             'csi' // index_format
+    //             )
 
-    //
-    // MODULE: Run BAMBU to reconstruct transcripts
-    //
-    BAMBU ( ch_fasta,
-            ch_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
-            SAMTOOLS_MANIPULATION.out.bam.toSortedList { a, b -> a[0].id <=> b[0].id }.map { it.collect { tuple -> tuple[1] } }
-        )
-    ch_versions = ch_versions.mix(BAMBU.out.versions.first())
+    // SUBWORKFLOW: Run novel transcript identification with BAMBU and liftoff
+    NOVEL_TRANSCRIPT_IDENTIFICATION(
+                    MINIMAP2_ALIGN_GENOME.out.bam,
+                    ch_fasta,
+                    ch_gtf
+                    )
 
     //
     // SUBWORKFLOW: Run SQANTI on reads and BAMBU annotation
     //
-    RUN_SQANTI_READS(
-                    MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
-                    ch_fasta.map { [ [:], it ] },
-                    BAMBU.out.extended_gtf
-                    )
-    // ch_versions = ch_versions.mix(RUN_SQANTI_READS.out.versions.first())
-    ch_multiqc_files = ch_multiqc_files.mix(RUN_SQANTI_READS.out.multiqc.collect())
+    if (!params.skip_sqanti) {
+        RUN_SQANTI_READS(
+                        MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
+                        ch_fasta.map { [ [:], it ] },
+                        NOVEL_TRANSCRIPT_IDENTIFICATION.out.bambu
+                        )
+        // ch_versions = ch_versions.mix(RUN_SQANTI_READS.out.versions.first())
+        ch_multiqc_files = ch_multiqc_files.mix(RUN_SQANTI_READS.out.multiqc.collect())
+    }
     //
     // MODULE: Run GFFREAD to extract transcript sequences
     //
     // extract the spliced transcripts including novel Bambu transcripts
-    GFFREAD_TRANSCRIPT(BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] },
+    GFFREAD_TRANSCRIPT(NOVEL_TRANSCRIPT_IDENTIFICATION.out.novel_gtf,
                        ch_fasta)
     ch_versions = ch_versions.mix(GFFREAD_TRANSCRIPT.out.versions.first())
 
@@ -240,7 +240,7 @@ workflow PLANTLONGRNASEQ {
                 ch_samplesheet.map { [ [:], it ] },
                 SAMTOOLS_SORT_TRANSRIPTOME.out.bam,
                 'oarfish',
-                BAMBU.out.extended_gtf,  // use the extended GTF from BAMBU
+                NOVEL_TRANSCRIPT_IDENTIFICATION.out.novel_gtf,  // use the extended GTF from BAMBU and liftoff
                 params.gtf_group_features,        //     val: GTF gene ID attribute
                 params.gtf_extra_attributes)
 
@@ -328,3 +328,4 @@ workflow PLANTLONGRNASEQ {
     THE END
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
