@@ -44,7 +44,7 @@ process SQANTIREADS {
 
     python ${params.sqanti_dir}/sqanti3_reads.py \\
         --design design.csv \\
-        --annotation bambu_annotation.gtf \\
+        --annotation $annotation \\
         --report html \\
         $args
 

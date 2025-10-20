@@ -39,7 +39,7 @@ process SQANTIQC {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        sqantireads: \$(python ${params.sqanti_dir}/sqanti3_qc.py --version |& sed '1!d ; s/sqanti-reads //')
+        sqantireads: \$(python ${params.sqanti_dir}/sqanti3_qc.py --version |& grep SQANTI3 | sed 's/SQANTI3 //')
     END_VERSIONS
     """
 
@@ -56,7 +56,7 @@ process SQANTIQC {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        sqantireads: \$(python ${params.sqanti_dir}/sqanti3_qc.py --version  |& sed '1!d ; s/sqanti-reads //')
+        sqantireads: \$(python ${params.sqanti_dir}/sqanti3_qc.py --version |& grep SQANTI3 | sed 's/SQANTI3 //')
     END_VERSIONS
     """
 }
