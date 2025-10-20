@@ -33,7 +33,6 @@ workflow PIPELINE_INITIALISATION {
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
     fasta             //  string: Path to genome reference FASTA file
-    gff               //  string: Path to genome reference GFF file
     gtf               //  string: Path to genome reference GTF file
 
     main:
