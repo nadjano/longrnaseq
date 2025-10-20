@@ -30,7 +30,7 @@ workflow RUN_SQANTI_READS {
                 'csi' // index_format, for large genomes csi is required
                 )
 
-    if (!params.skip_sqanti) {
+  
         //
         // MODULES: RUN SPLICEDBAM2GFF
         //
@@ -81,13 +81,8 @@ workflow RUN_SQANTI_READS {
         multiqc   =  SQANTIREADS.out.multiqc   // channel: [ _mqc.png ]
         versions  = ch_versions                     // channel: [ versions.yml ]
 
-    }
+    
 
-    emit:
-    // TODO nf-core: edit emitted channels
-    bam      = SAMTOOLS_FILTER.out.bam          // channel: [ val(meta), [ bam ], [ bai ] ]
-    versions = ch_versions
-    multiqc  =  SQANTIREADS.out.multiqc
 
 
 }
