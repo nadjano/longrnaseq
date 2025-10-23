@@ -191,7 +191,7 @@ workflow PLANTLONGRNASEQ {
                     ch_fasta,
                     ch_gtf
                     )
-
+    NOVEL_TRANSCRIPT_IDENTIFICATION.out.novel_gtf.view()
     //
     // SUBWORKFLOW: Run SQANTI on reads and BAMBU annotation
     //
@@ -199,7 +199,7 @@ workflow PLANTLONGRNASEQ {
         RUN_SQANTI_READS(
                         MINIMAP2_ALIGN_GENOME.out.bam.join(MINIMAP2_ALIGN_GENOME.out.index),
                         ch_fasta.map { [ [:], it ] },
-                        NOVEL_TRANSCRIPT_IDENTIFICATION.out.bambu
+                        NOVEL_TRANSCRIPT_IDENTIFICATION.out.novel_gtf
                         )
         // ch_versions = ch_versions.mix(RUN_SQANTI_READS.out.versions.first())
         ch_multiqc_files = ch_multiqc_files.mix(RUN_SQANTI_READS.out.multiqc.collect())
@@ -215,9 +215,12 @@ workflow PLANTLONGRNASEQ {
     //
     // MODULE: Run Minimap2 alignment on transcripts + novel Bambu transcripts
     //
+    ch_minimap_input = ch_samplesheet
+                        .combine(GFFREAD_TRANSCRIPT.out.gffread_fasta) // without .combine it is only run on the first sample
+
     MINIMAP2_ALIGN_TRANSCRIPT (
-        ch_samplesheet,
-        GFFREAD_TRANSCRIPT.out.gffread_fasta,
+        ch_minimap_input.map { meta, reads, ref_meta, ref_file -> [meta, reads] },
+        ch_minimap_input.map { meta, reads, ref_meta, ref_file -> [ref_meta,ref_file] },
         true,
         'bai',
         false,
