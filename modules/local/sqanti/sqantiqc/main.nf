@@ -9,9 +9,9 @@ process SQANTIQC {
     // container "docker://anaconesalab/sqanti3:5.3.6-conda-fix"
 
     input:
-    tuple val(meta), path(gff)
+    tuple val(meta), path(read_gff)
     tuple val(meta2), path(genome)
-    path(annotation)
+    tuple val(meta3), path(ref_gff)
 
     output:
     tuple val(meta), path("${meta.id}/*.html"), emit: html
@@ -27,10 +27,10 @@ process SQANTIQC {
     """
 
     # remove lines with '.' as strand as this will cause sqanti to fail
-    awk -F'\\t' '\$7 != "."' $annotation > temp.tsv && mv temp.tsv bambu_annotation.gtf
+    awk -F'\\t' '\$7 != "."' $ref_gff > temp.tsv && mv temp.tsv bambu_annotation.gtf
 
     python ${params.sqanti_dir}/sqanti3_qc.py \\
-        --isoforms $gff \\
+        --isoforms $read_gff \\
         --refGTF bambu_annotation.gtf \\
         --refFasta $genome \\
         $args \\
