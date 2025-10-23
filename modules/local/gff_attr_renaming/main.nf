@@ -12,7 +12,7 @@ process GFF_ATTR_RENAMING {
 
 
     output:
-    tuple val(meta), path("*.fixed.gtf"), emit: fixed_gtf
+    tuple val(meta), path("*.fixed.gtf")           , emit: fixed_gtf
     path "versions.yml"                 , emit: versions
 
     when:
