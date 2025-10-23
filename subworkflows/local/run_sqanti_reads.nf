@@ -44,12 +44,17 @@ workflow RUN_SQANTI_READS {
         //
 
         gff_channel = SPLICEDBAM2GFF.out.gff
+        ch_sqanti_input = gff_channel
+                        .combine(ch_gtf) // without .combine it is only run on the first sample
 
+  
+        ch_sqanti_input.view()
 
+        gff_channel.view()
         SQANTIQC (
-                    gff_channel,
+                    ch_sqanti_input.map { meta, gff, ref_meta, ref_file -> [meta, gff] },
                     ch_fasta,
-                    ch_gtf
+                    ch_sqanti_input.map { meta, gff, ref_meta, ref_file -> [ref_meta,ref_file] }
                     )
         ch_versions = ch_versions.mix(SQANTIQC.out.versions.first())
         // Collect the gff files
@@ -65,7 +70,7 @@ workflow RUN_SQANTI_READS {
         }
 
 
-        // MODULES: RUN SQANTI READS
+
 
         SQANTIREADS (
                     combined_sqanti_ch,
