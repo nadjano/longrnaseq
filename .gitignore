@@ -14,3 +14,4 @@ ATL_v3.hc_gene_models.agat.exon2cds150.with_chloroplast_and_mito.sorted.agat.log
 tagged.bam
 .gitignore
 tagged.bam.bai
+run.sh
