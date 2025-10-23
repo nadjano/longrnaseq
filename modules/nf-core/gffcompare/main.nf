@@ -10,7 +10,7 @@ process GFFCOMPARE {
     input:
     tuple val(meta), path(gtfs)
     tuple val(meta2), path(fasta), path(fai)
-    tuple val(meta3), path(reference_gtf)
+    tuple val(meta3), path(reference_gtf, name: "reference.gtf")
 
     output:
     tuple val(meta), path("*.annotated.gtf"), optional: true, emit: annotated_gtf
