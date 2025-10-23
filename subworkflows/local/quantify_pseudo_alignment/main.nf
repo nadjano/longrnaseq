@@ -14,7 +14,7 @@ workflow QUANTIFY_PSEUDO_ALIGNMENT {
     samplesheet               // channel: [ val(meta), /path/to/samplsheet ]
     alignment                 // channel: [ val(meta), [ bam ] ]
     pseudo_aligner            // channel: [ val(meta), 'salmon' | 'kallisto' ]
-    gtf                       // channel: /path/to/genome.gtf
+    gtf                       // channel: [ val(meta), [ gtf ] ]
     gtf_id_attribute          //     val: GTF gene ID attribute
     gtf_extra_attribute       //     val: GTF alternative gene attribute (e.g. gene_name)
 
@@ -34,7 +34,7 @@ workflow QUANTIFY_PSEUDO_ALIGNMENT {
     ch_versions = ch_versions.mix(OARFISH.out.versions.first())
 
     CUSTOM_TX2GENE (
-        gtf.map { [ [:], it ] },
+        gtf,
         ch_pseudo_results.collect{ it[1] }.map { [ [:], it ] },
         'salmon',
         gtf_id_attribute,
