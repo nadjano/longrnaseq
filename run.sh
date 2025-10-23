@@ -34,7 +34,7 @@ nextflow run main.nf -resume -profile singularity \
                     --gtf /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
-                    -bg --technology PacBio
+                    -bg --technology PacBio --skip_sqanti
 
 
 # add the chloroplast and mitochondria to the annotation
@@ -51,15 +51,7 @@ grep "NC_" /scratch/markop/WORK/_p_Single-cell/_I_Optimization_of_protocols/_S_C
 cat   /scratch/nadjafn/reference/De_v1.unitato_liftoff_haplotap.agat.gtf /scratch/nadjafn/reference/organelles/potato_chloroplast.gtf /scratch/nadjafn/reference/organelles/potato_mito.gtf > /scratch/nadjafn/reference/Desiree_v1/De_v1.unitato_liftoff_haplotap_gffread.with_chloroplast_and_mito.gtf
 
 
-# run Atlantic with all isoforms but no UTRs
-nextflow run main.nf -resume -profile singularity \
-                    --input assets/samplesheet_atlantic.csv \
-                    --outdir output_atlantic_all_isoforms_no_UTR \
-                    --fasta /scratch/nadjafn/reference/Atlantic/ATL_v3.asm.with_chloroplast_and_mito.fa \
-                    --gtf  /scratch/nadjafn/reference/Atlantic/ATL_v3.hc_gene_models.agat.exon2cds150.with_chloroplast_and_mito.no_scaffold.gtf \
-                    --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
-                    --sqanti_dir /scratch/nadjafn/sqanti3/release_sqanti3 \
-                    --sqanti_test -bg --technology ONT
+
 
 # run Atlantic with liftoff
 nextflow run main.nf -resume -profile singularity \
@@ -69,7 +61,7 @@ nextflow run main.nf -resume -profile singularity \
                     --gtf  /scratch/nadjafn/reference/Atlantic/unitato2Atl.with_chloroplast_and_mito.no_scaffold.agat.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
-                    -bg --technology ONT
+                    -bg --technology ONT --downsample_rate 0.99  --skip_sqanti
 
 nextflow run main.nf -resume -profile singularity \
                     --input assets/samplesheet_atlantic.csv \
@@ -101,4 +93,4 @@ nextflow run main.nf -resume -profile singularity \
                     --gtf   /scratch/nadjafn/LR_DESIREE_PAPER/ANALYSIS/rice_example/genome/Hap1_2_Nipponbare.genome.renamed.organels.standard.gtf \
                     --centrifuge_db /biodbs/centrifuge/dbs_v2018/ \
                     --sqanti_dir /scratch/nadjafn/sqanti3/SQANTI3 \
-                    -bg --technology ONT
+                    -bg --technology ONT --downsample_rate 0.1 --skip_sqanti
