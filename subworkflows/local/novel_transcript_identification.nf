@@ -9,6 +9,7 @@ include { SAMTOOLS_VIEW as SAMTOOLS_FILTER             } from '../../modules/nf-
 include { LIFTOFF                                      } from '../../modules/nf-core/liftoff/main'
 include { GFFCOMPARE                                   } from '../../modules/nf-core/gffcompare/main'
 include { GFF_ATTR_RENAMING                            } from '../../modules/local/gff_attr_renaming/main'
+include { SPLIT_HAPLOTYPES                       } from '../../modules/local/split_haplotypes/main'
 workflow NOVEL_TRANSCRIPT_IDENTIFICATION {
 
     take:
@@ -51,35 +52,71 @@ workflow NOVEL_TRANSCRIPT_IDENTIFICATION {
     ch_versions = ch_versions.mix(GAWK.out.versions.first())
 
     //
+    // MODULE: Split GFF by chromosome to avoid copied transcripts to be discarded in LIFTOFF
+    //
+    SPLIT_HAPLOTYPES (
+        GAWK.out.output  
+
+    )
+    SPLIT_HAPLOTYPES.out.split_gffs.view()
+    //
     // MODULE: Liftoff novel BAMBU isoforms to other haplotypes
     //
+    SPLIT_HAPLOTYPES.out.split_gffs
+        .transpose()
+        .map { meta, gff ->
+            def chr = gff.name.replaceAll(/.*\.bambu\.(.*)\.gff/, '$1')
+            [meta + ["id": chr], gff]
+        }
+        .combine(ch_fasta.map { [it] })  // Add fasta to each
+        .map { meta, gff, fasta ->
+            [meta, fasta, gff]
+        }
+        .set { ch_liftoff_input }
+    ch_liftoff_input.view()
     LIFTOFF (
-        ch_fasta.map { fasta -> [["id": fasta.simpleName], fasta]  },
-        ch_fasta, // just get the reference fasta from id, fasta channel
-        GAWK.out.output.map { it[1] },
-        []    
+        ch_liftoff_input.map { meta, fasta, gff -> [meta, fasta] },
+        ch_fasta,
+        ch_liftoff_input.map { meta, fasta, gff -> gff },
+        []
     )
+    
+    // LIFTOFF (
+    //     ch_fasta.map { fasta -> [["id": fasta.simpleName], fasta]  },
+    //     ch_fasta, // just get the reference fasta from id, fasta channel
+    //     GAWK.out.output.map { it[1] },
+    //     []    
+    // )
     ch_versions = ch_versions.mix(LIFTOFF.out.versions.first())
 
+    
 
     // Create a channel with placeholder values
     ch_fasta_empty = Channel.of([ [:], [], [] ])  // Empty meta, empty file list
 
 
+    // Collect all Liftoff chromosome outputs into a single list
     ch_combined_gtf = LIFTOFF.out.gff3
-    .map { meta, gtf -> gtf.copyTo("liftoff.gtf") }
-    .combine(
-        BAMBU.out.extended_gtf.map { gtf -> gtf.copyTo("bambu.gtf") }
-    )
-    .map { gtf1, gtf2 -> [[id: "combined"], [gtf1, gtf2]] }
+        .map { meta, gtf -> gtf }
+        .collect() // Collects all files into a single list
+        .map { liftoff_gtfs ->
+            [[id: "combined"], liftoff_gtfs]
+        }
+        .combine(
+            BAMBU.out.extended_gtf  // Don't map it, use it directly
+        )
+        .map { meta, liftoff_list, bambu_gtf ->
+            [meta, liftoff_list + [bambu_gtf]]  // Wrap bambu_gtf in a list
+        }
+
 
     ch_combined_gtf.view()
-    // MODDULE: Merge liftoff with previous annotation
-    GFFCOMPARE ( 
-        ch_combined_gtf,
-        ch_fasta_empty,  // tuple val(meta2), path(fasta), path(fai)
-        BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }
 
+    // Run GFFCOMPARE with all files
+    GFFCOMPARE (
+        ch_combined_gtf,
+        ch_fasta_empty,
+        BAMBU.out.extended_gtf.map { gtf -> [["id": gtf.simpleName], gtf] }
     )
     ch_versions = ch_versions.mix(GFFCOMPARE.out.versions.first())
 
