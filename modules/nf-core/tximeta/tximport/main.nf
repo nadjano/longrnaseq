@@ -20,7 +20,6 @@ process TXIMETA_TXIMPORT {
     tuple val(meta), path("*transcript_tpm.tsv")           , emit: tpm_transcript
     tuple val(meta), path("*transcript_counts.tsv")        , emit: counts_transcript
     tuple val(meta), path("*transcript_lengths.tsv")       , emit: lengths_transcript
-    tuple val(meta), path("tx2gene.tsv")                   , emit: tx2gene
     path "versions.yml"                                    , emit: versions
 
     when:
