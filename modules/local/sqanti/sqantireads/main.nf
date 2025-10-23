@@ -14,7 +14,7 @@ process SQANTIREADS {
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
     tuple val(meta), path(sqanti_dir)
-    path(annotation)
+    tuple val(meta2), path(ref_gff)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
@@ -44,7 +44,7 @@ process SQANTIREADS {
 
     python ${params.sqanti_dir}/sqanti3_reads.py \\
         --design design.csv \\
-        --annotation $annotation \\
+        --annotation $ref_gff \\
         --report html \\
         $args
 
